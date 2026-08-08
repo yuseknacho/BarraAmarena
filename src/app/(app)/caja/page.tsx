@@ -38,7 +38,7 @@ export default async function CajaPage() {
           </p>
           <OpenSessionForm />
         </Card>
-        {user.role === "admin" && (
+        {user.role === "superadmin" && (
           <p className="mt-4 text-sm">
             <Link href="/caja/historial" className="text-brand hover:underline">
               Ver historial de cajas →
@@ -77,7 +77,7 @@ export default async function CajaPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <PageTitle>Caja — {terminal.name}</PageTitle>
-        {user.role === "admin" && (
+        {user.role === "superadmin" && (
           <Link href="/caja/historial" className="text-sm text-brand hover:underline">
             Historial de cajas →
           </Link>

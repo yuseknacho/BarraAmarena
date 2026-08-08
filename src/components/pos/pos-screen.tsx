@@ -23,11 +23,13 @@ interface CartLine extends PosProduct {
 
 export function PosScreen({
   terminalName,
+  sellerName,
   customers,
   products,
   categories,
 }: {
   terminalName: string;
+  sellerName: string;
   customers: { id: number; name: string }[];
   products: PosProduct[];
   categories: { id: number; name: string }[];
@@ -196,9 +198,13 @@ export function PosScreen({
       {/* Pedido actual — siempre a la izquierda */}
       <div className="w-72 md:w-80 lg:w-96 shrink-0 flex flex-col gap-3 min-h-0">
         <div className="rounded-xl border border-white/10 bg-neutral-950 flex-1 flex flex-col min-h-0">
-          <div className="px-4 py-2.5 border-b border-white/10 flex items-center justify-between">
+          <div className="px-4 py-2.5 border-b border-white/10 flex items-center justify-between gap-2">
             <h2 className="font-display tracking-wide uppercase">Pedido</h2>
-            <span className="text-xs text-white/40">{terminalName}</span>
+            <span className="text-xs text-white/40 text-right truncate">
+              Vende: <span className="text-brand-light font-semibold">{sellerName}</span>
+              {" · "}
+              {terminalName}
+            </span>
           </div>
           <div className="flex-1 overflow-y-auto min-h-0">
             {cart.length === 0 && (

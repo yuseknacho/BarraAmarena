@@ -8,7 +8,7 @@ interface UserRow {
   id: number;
   username: string;
   fullName: string;
-  role: "superadmin" | "admin" | "cajero";
+  role: "superadmin" | "cajero";
   active: boolean;
 }
 
@@ -46,8 +46,8 @@ export function UserList({ users }: { users: UserRow[] }) {
                 <Td className="font-medium">{u.username}</Td>
                 <Td>{u.fullName}</Td>
                 <Td>
-                  <Badge color={u.role === "superadmin" ? "yellow" : u.role === "admin" ? "blue" : "gray"}>
-                    {u.role}
+                  <Badge color={u.role === "superadmin" ? "yellow" : "gray"}>
+                    {u.role === "superadmin" ? "Super Admin" : "caja"}
                   </Badge>
                 </Td>
                 <Td>
@@ -95,8 +95,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
         <div>
           <Label>Rol</Label>
           <Select name="role" defaultValue="cajero">
-            <option value="cajero">Cajero</option>
-            <option value="admin">Administrador</option>
+            <option value="cajero">Caja (vendedor)</option>
             <option value="superadmin">Super Admin</option>
           </Select>
         </div>
@@ -130,8 +129,7 @@ function EditForm({ user, onDone }: { user: UserRow; onDone: () => void }) {
         <div>
           <Label>Rol</Label>
           <Select name="role" defaultValue={user.role}>
-            <option value="cajero">Cajero</option>
-            <option value="admin">Administrador</option>
+            <option value="cajero">Caja (vendedor)</option>
             <option value="superadmin">Super Admin</option>
           </Select>
         </div>

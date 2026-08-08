@@ -9,7 +9,7 @@ import { Card, PageTitle, Button } from "@/components/ui";
 import { PosScreen } from "@/components/pos/pos-screen";
 
 export default async function PosPage() {
-  await requireUser();
+  const user = await requireUser();
   const terminal = await getTerminal();
   if (!terminal) redirect("/setup-terminal");
 
@@ -62,6 +62,7 @@ export default async function PosPage() {
   return (
     <PosScreen
       terminalName={terminal.name}
+      sellerName={user.fullName}
       customers={customerList}
       products={productList}
       categories={categoryList}

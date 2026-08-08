@@ -9,7 +9,8 @@ const cajeroLinks = [
   { href: "/caja", label: "Caja" },
 ];
 
-const adminLinks = [
+const superadminLinks = [
+  { href: "/panel", label: "Panel de control" },
   { href: "/pos", label: "Vender" },
   { href: "/caja", label: "Caja" },
   { href: "/productos", label: "Productos" },
@@ -21,23 +22,13 @@ const adminLinks = [
   { href: "/admin", label: "Administración" },
 ];
 
-const superadminLinks = [
-  { href: "/panel", label: "Panel de control" },
-  ...adminLinks,
-];
-
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const user = await requireUser();
-  const links =
-    user.role === "superadmin"
-      ? superadminLinks
-      : user.role === "admin"
-        ? adminLinks
-        : cajeroLinks;
+  const links = user.role === "superadmin" ? superadminLinks : cajeroLinks;
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">

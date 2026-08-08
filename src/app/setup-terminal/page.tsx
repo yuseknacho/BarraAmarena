@@ -31,11 +31,11 @@ export default async function SetupTerminalPage() {
           <div className="text-sm text-white/70 space-y-3">
             <p>
               No hay terminales disponibles.{" "}
-              {user.role === "admin"
+              {user.role === "superadmin"
                 ? "Creá una desde Administración → Terminales."
                 : "Pedile a un administrador que cree una terminal o desvincule una existente."}
             </p>
-            {user.role === "admin" && (
+            {user.role === "superadmin" && (
               <Link href="/admin/terminales">
                 <Button>Ir a Terminales</Button>
               </Link>
