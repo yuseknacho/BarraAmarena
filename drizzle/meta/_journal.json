@@ -22,6 +22,13 @@
       "when": 1786222760959,
       "tag": "0002_barman-qr",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786226340229,
+      "tag": "0003_combos",
+      "breakpoints": true
     }
   ]
 }

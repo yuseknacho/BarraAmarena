@@ -1,6 +1,15 @@
 import { requireUser } from "@/lib/auth";
-import { db, sqlite, sales, saleItems, users, terminals } from "@/db";
-import { eq } from "drizzle-orm";
+import {
+  db,
+  sqlite,
+  sales,
+  saleItems,
+  users,
+  terminals,
+  products,
+  productComponents,
+} from "@/db";
+import { eq, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, Button } from "@/components/ui";
@@ -48,6 +57,25 @@ export default async function CanjeTokenPage({
     .from(saleItems)
     .where(eq(saleItems.saleId, sale.id))
     .all();
+
+  // Detalle de combos: qué incluye cada uno, para que el barman sepa qué armar
+  const itemProductIds = items
+    .map((i) => i.productId)
+    .filter((id): id is number => id !== null);
+  const comboComponents =
+    itemProductIds.length > 0
+      ? db
+          .select({
+            comboId: productComponents.productId,
+            qty: productComponents.qty,
+            name: products.name,
+          })
+          .from(productComponents)
+          .innerJoin(products, eq(productComponents.componentProductId, products.id))
+          .where(inArray(productComponents.productId, itemProductIds))
+          .all()
+      : [];
+
   const terminal = db
     .select({ name: terminals.name })
     .from(terminals)
@@ -121,20 +149,36 @@ export default async function CanjeTokenPage({
           Productos del pedido
         </div>
         <ul className="divide-y divide-white/10">
-          {items.map((item) => (
-            <li key={item.id} className="flex items-center gap-3 px-4 py-3">
-              <span
-                className={`font-display text-2xl w-14 text-center rounded-md py-1 ${
-                  isFirstScan
-                    ? "bg-brand/20 text-brand-light"
-                    : "bg-white/10 text-white/60"
-                }`}
-              >
-                {fmtQty(item.qty)}
-              </span>
-              <span className="text-lg">{item.description}</span>
-            </li>
-          ))}
+          {items.map((item) => {
+            const comps = comboComponents.filter(
+              (c) => c.comboId === item.productId
+            );
+            return (
+              <li key={item.id} className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`font-display text-2xl w-14 text-center rounded-md py-1 ${
+                      isFirstScan
+                        ? "bg-brand/20 text-brand-light"
+                        : "bg-white/10 text-white/60"
+                    }`}
+                  >
+                    {fmtQty(item.qty)}
+                  </span>
+                  <span className="text-lg">{item.description}</span>
+                </div>
+                {comps.length > 0 && (
+                  <ul className="mt-1 ml-16 text-sm text-white/60 space-y-0.5">
+                    {comps.map((c, i) => (
+                      <li key={i}>
+                        ↳ {fmtQty(c.qty * item.qty)} × {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </Card>
 

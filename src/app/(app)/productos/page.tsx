@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { db, products, categories } from "@/db";
+import { db, products, categories, productComponents } from "@/db";
 import { like, or, desc } from "drizzle-orm";
 import { PageTitle, PageHelp } from "@/components/ui";
 import { ProductManager } from "./product-manager";
@@ -25,12 +25,15 @@ export default async function ProductosPage({
         .all()
     : db.select().from(products).orderBy(desc(products.createdAt)).limit(200).all();
 
+  const allComponents = db.select().from(productComponents).all();
+
   return (
     <div>
       <PageTitle>Productos</PageTitle>
       <ProductManager
         products={rows}
         categories={allCategories}
+        components={allComponents}
         initialQuery={query ?? ""}
       />
       <PageHelp>El catálogo de todo lo que vendés: nombre, código de barras, categoría, costo, precio de venta, la foto que aparece en la pantalla de vender y el stock mínimo para recibir alertas.</PageHelp>

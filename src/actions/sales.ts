@@ -9,6 +9,7 @@ import {
   salePayments,
   stockMovements,
   documentCounters,
+  productComponents,
 } from "@/db";
 import { eq, like, or, and, sql } from "drizzle-orm";
 import { requireUser, requireAdmin, requireSeller } from "@/lib/auth";
@@ -111,6 +112,11 @@ export async function createSale(input: SaleInput): Promise<CreateSaleResult> {
       // congelan en sale_items: el cliente solo manda ids y cantidades.
       let subtotal = 0;
       let totalCost = 0;
+      interface StockOp {
+        productId: number;
+        qtyDelta: number;
+        newStock: number;
+      }
       const lines: {
         productId: number;
         description: string;
@@ -120,8 +126,23 @@ export async function createSale(input: SaleInput): Promise<CreateSaleResult> {
         taxRate: number | null;
         discountCents: number;
         lineTotalCents: number;
-        newStock: number;
+        stockOps: StockOp[];
       }[] = [];
+
+      // Cache de stock en memoria para descontar bien aunque varias líneas
+      // (o un combo y un producto suelto) compartan el mismo producto.
+      const stockCache = new Map<number, { stock: number; name: string }>();
+      const getStock = (pid: number) => {
+        if (!stockCache.has(pid)) {
+          const row = db
+            .select({ stock: products.stock, name: products.name })
+            .from(products)
+            .where(eq(products.id, pid))
+            .get()!;
+          stockCache.set(pid, { ...row });
+        }
+        return stockCache.get(pid)!;
+      };
 
       for (const item of data.items) {
         const p = db
@@ -135,18 +156,69 @@ export async function createSale(input: SaleInput): Promise<CreateSaleResult> {
           Math.round(p.priceCents * item.qty) - item.discountCents;
         if (lineTotal < 0) throw new Error(`Descuento mayor al total en ${p.name}.`);
 
+        let unitCostCents = p.costCents;
+        const stockOps: StockOp[] = [];
+
+        if (p.isCombo) {
+          // Combo: descuenta el stock de cada componente. Si falta stock
+          // de alguno, la venta NO se permite.
+          const comps = db
+            .select({
+              componentProductId: productComponents.componentProductId,
+              qty: productComponents.qty,
+              costCents: products.costCents,
+              name: products.name,
+              unit: products.unit,
+            })
+            .from(productComponents)
+            .innerJoin(products, eq(productComponents.componentProductId, products.id))
+            .where(eq(productComponents.productId, p.id))
+            .all();
+          if (comps.length === 0)
+            throw new Error(`El combo "${p.name}" no tiene productos asociados.`);
+
+          unitCostCents = comps.reduce(
+            (a, c) => a + Math.round(c.costCents * c.qty),
+            0
+          );
+
+          for (const c of comps) {
+            const s = getStock(c.componentProductId);
+            const needed = c.qty * item.qty;
+            if (s.stock < needed) {
+              throw new Error(
+                `Sin stock para el combo "${p.name}": falta ${c.name} (hay ${s.stock}, se necesitan ${needed}).`
+              );
+            }
+            s.stock -= needed;
+            stockOps.push({
+              productId: c.componentProductId,
+              qtyDelta: -needed,
+              newStock: s.stock,
+            });
+          }
+        } else {
+          const s = getStock(p.id);
+          s.stock -= item.qty;
+          stockOps.push({
+            productId: p.id,
+            qtyDelta: -item.qty,
+            newStock: s.stock,
+          });
+        }
+
         subtotal += Math.round(p.priceCents * item.qty);
-        totalCost += Math.round(p.costCents * item.qty);
+        totalCost += Math.round(unitCostCents * item.qty);
         lines.push({
           productId: p.id,
           description: p.name,
           qty: item.qty,
           unitPriceCents: p.priceCents,
-          unitCostCents: p.costCents,
+          unitCostCents,
           taxRate: p.taxRate,
           discountCents: item.discountCents,
           lineTotalCents: lineTotal,
-          newStock: p.stock - item.qty,
+          stockOps,
         });
       }
 
@@ -204,22 +276,24 @@ export async function createSale(input: SaleInput): Promise<CreateSaleResult> {
           })
           .run();
 
-        db.update(products)
-          .set({ stock: l.newStock, updatedAt: new Date().toISOString() })
-          .where(eq(products.id, l.productId))
-          .run();
+        for (const op of l.stockOps) {
+          db.update(products)
+            .set({ stock: op.newStock, updatedAt: new Date().toISOString() })
+            .where(eq(products.id, op.productId))
+            .run();
 
-        db.insert(stockMovements)
-          .values({
-            productId: l.productId,
-            type: "venta",
-            qtyDelta: -l.qty,
-            stockAfter: l.newStock,
-            refTable: "sales",
-            refId: sale.id,
-            userId: user.userId,
-          })
-          .run();
+          db.insert(stockMovements)
+            .values({
+              productId: op.productId,
+              type: "venta",
+              qtyDelta: op.qtyDelta,
+              stockAfter: op.newStock,
+              refTable: "sales",
+              refId: sale.id,
+              userId: user.userId,
+            })
+            .run();
+        }
       }
 
       for (const p of data.payments) {
@@ -262,31 +336,38 @@ export async function voidSale(saleId: number): Promise<{ error?: string; ok?: b
         .where(eq(sales.id, saleId))
         .run();
 
-      const items = db
+      // Se repone exactamente lo que la venta descontó (incluye los
+      // componentes de combos), usando los movimientos de stock originales.
+      const movs = db
         .select()
-        .from(saleItems)
-        .where(eq(saleItems.saleId, saleId))
+        .from(stockMovements)
+        .where(
+          and(
+            eq(stockMovements.refTable, "sales"),
+            eq(stockMovements.refId, saleId),
+            eq(stockMovements.type, "venta")
+          )
+        )
         .all();
 
-      for (const item of items) {
-        if (!item.productId) continue;
+      for (const m of movs) {
         db.update(products)
           .set({
-            stock: sql`${products.stock} + ${item.qty}`,
+            stock: sql`${products.stock} - ${m.qtyDelta}`,
             updatedAt: new Date().toISOString(),
           })
-          .where(eq(products.id, item.productId))
+          .where(eq(products.id, m.productId))
           .run();
         const updated = db
           .select({ stock: products.stock })
           .from(products)
-          .where(eq(products.id, item.productId))
+          .where(eq(products.id, m.productId))
           .get()!;
         db.insert(stockMovements)
           .values({
-            productId: item.productId,
+            productId: m.productId,
             type: "anulacion",
-            qtyDelta: item.qty,
+            qtyDelta: -m.qtyDelta,
             stockAfter: updated.stock,
             refTable: "sales",
             refId: saleId,

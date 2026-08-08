@@ -1,7 +1,7 @@
 import { requireSeller } from "@/lib/auth";
 import { getTerminal } from "@/lib/terminal";
 import { getOpenSession } from "@/lib/cash";
-import { db, customers, products, categories } from "@/db";
+import { db, customers, products, categories, productComponents } from "@/db";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -47,11 +47,34 @@ export default async function PosPage() {
       unit: products.unit,
       image: products.image,
       categoryId: products.categoryId,
+      isCombo: products.isCombo,
     })
     .from(products)
     .where(eq(products.active, true))
     .orderBy(products.name)
     .all();
+
+  // Stock efectivo de los combos: cuántas unidades alcanzan los componentes
+  const allComponents = db
+    .select({
+      productId: productComponents.productId,
+      qty: productComponents.qty,
+      componentStock: products.stock,
+    })
+    .from(productComponents)
+    .innerJoin(products, eq(productComponents.componentProductId, products.id))
+    .all();
+  for (const p of productList) {
+    if (!p.isCombo) continue;
+    const comps = allComponents.filter((c) => c.productId === p.id);
+    p.stock =
+      comps.length === 0
+        ? 0
+        : Math.max(
+            0,
+            Math.min(...comps.map((c) => Math.floor(c.componentStock / c.qty)))
+          );
+  }
 
   const categoryList = db
     .select()

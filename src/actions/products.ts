@@ -1,6 +1,13 @@
 "use server";
 
-import { db, sqlite, products, categories, stockMovements } from "@/db";
+import {
+  db,
+  sqlite,
+  products,
+  categories,
+  stockMovements,
+  productComponents,
+} from "@/db";
 import { eq, and, ne, sql } from "drizzle-orm";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -65,6 +72,53 @@ function parseProductForm(formData: FormData) {
   });
 }
 
+const componentsSchema = z
+  .array(
+    z.object({
+      productId: z.number().int().positive(),
+      qty: z.number().positive(),
+    })
+  )
+  .min(1);
+
+// Valida y normaliza los componentes de un combo desde el form.
+// Devuelve la lista con costo total, o un error.
+function parseComponents(
+  formData: FormData,
+  comboId: number | null
+): { components: { productId: number; qty: number }[]; costCents: number } | { error: string } {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(String(formData.get("components") ?? "[]"));
+  } catch {
+    return { error: "Componentes del combo inválidos." };
+  }
+  const parsed = componentsSchema.safeParse(raw);
+  if (!parsed.success)
+    return { error: "Elegí los productos que forman el combo." };
+
+  // sin duplicados
+  const ids = parsed.data.map((c) => c.productId);
+  if (new Set(ids).size !== ids.length)
+    return { error: "Hay productos repetidos en el combo: uní las cantidades." };
+
+  const totalQty = parsed.data.reduce((a, c) => a + c.qty, 0);
+  if (totalQty < 2)
+    return { error: "Un combo debe incluir al menos 2 productos." };
+
+  let costCents = 0;
+  for (const c of parsed.data) {
+    if (comboId !== null && c.productId === comboId)
+      return { error: "Un combo no puede incluirse a sí mismo." };
+    const p = db.select().from(products).where(eq(products.id, c.productId)).get();
+    if (!p) return { error: "Uno de los productos del combo no existe." };
+    if (p.isCombo)
+      return { error: `"${p.name}" es un combo: no se puede incluir dentro de otro combo.` };
+    costCents += Math.round(p.costCents * c.qty);
+  }
+  return { components: parsed.data, costCents };
+}
+
 export async function createProduct(
   _prev: ActionResult | undefined,
   formData: FormData
@@ -83,7 +137,16 @@ export async function createProduct(
     if (dup) return { error: "Ya existe un producto con ese código de barras." };
   }
 
-  const initialStock = Number(formData.get("stock") ?? 0) || 0;
+  const isCombo = formData.get("isCombo") === "on";
+  let comboData: { components: { productId: number; qty: number }[]; costCents: number } | null =
+    null;
+  if (isCombo) {
+    const parsedComps = parseComponents(formData, null);
+    if ("error" in parsedComps) return { error: parsedComps.error };
+    comboData = parsedComps;
+  }
+
+  const initialStock = isCombo ? 0 : Number(formData.get("stock") ?? 0) || 0;
 
   let image: string | null;
   try {
@@ -99,16 +162,30 @@ export async function createProduct(
         name: d.name,
         barcode: d.barcode ?? null,
         categoryId: d.categoryId ?? null,
-        costCents: pesosToCents(d.cost),
+        // El costo de un combo es la suma de los costos de sus componentes
+        costCents: comboData ? comboData.costCents : pesosToCents(d.cost),
         priceCents: pesosToCents(d.price),
         taxRate: d.taxRate ?? null,
-        minStock: d.minStock ?? null,
+        minStock: isCombo ? null : (d.minStock ?? null),
         unit: d.unit,
         stock: initialStock,
         image,
+        isCombo,
       })
       .returning({ id: products.id })
       .get();
+
+    if (comboData) {
+      for (const c of comboData.components) {
+        db.insert(productComponents)
+          .values({
+            productId: inserted.id,
+            componentProductId: c.productId,
+            qty: c.qty,
+          })
+          .run();
+      }
+    }
 
     if (initialStock !== 0) {
       db.insert(stockMovements)
@@ -126,6 +203,7 @@ export async function createProduct(
   tx();
 
   revalidatePath("/productos");
+  revalidatePath("/pos");
   return { ok: true };
 }
 
@@ -151,6 +229,32 @@ export async function updateProduct(
     if (dup) return { error: "Otro producto ya usa ese código de barras." };
   }
 
+  const isCombo = formData.get("isCombo") === "on";
+  let comboData: { components: { productId: number; qty: number }[]; costCents: number } | null =
+    null;
+  if (isCombo) {
+    // Un producto común con historial de stock no puede volverse combo así nomás
+    const parsedComps = parseComponents(formData, id);
+    if ("error" in parsedComps) return { error: parsedComps.error };
+    comboData = parsedComps;
+  } else if (existing.isCombo) {
+    return {
+      error:
+        "Este producto es un combo: no se puede convertir en producto común. Desactivalo y creá uno nuevo.",
+    };
+  }
+
+  // ¿Este producto está dentro de algún combo? No dejar que se convierta en combo.
+  if (isCombo && !existing.isCombo) {
+    const usedInCombo = db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(productComponents)
+      .where(eq(productComponents.componentProductId, id))
+      .get()!.n;
+    if (usedInCombo > 0)
+      return { error: "Este producto forma parte de un combo: no puede ser combo." };
+  }
+
   let image = existing.image;
   try {
     const uploaded = await saveImage(formData.get("image"));
@@ -165,22 +269,37 @@ export async function updateProduct(
     return { error: e instanceof Error ? e.message : "Error al guardar la imagen." };
   }
 
-  db.update(products)
-    .set({
-      name: d.name,
-      barcode: d.barcode ?? null,
-      categoryId: d.categoryId ?? null,
-      costCents: pesosToCents(d.cost),
-      priceCents: pesosToCents(d.price),
-      taxRate: d.taxRate ?? null,
-      minStock: d.minStock ?? null,
-      unit: d.unit,
-      image,
-      active: formData.get("active") === "on",
-      updatedAt: new Date().toISOString(),
-    })
-    .where(eq(products.id, id))
-    .run();
+  const tx = sqlite.transaction(() => {
+    db.update(products)
+      .set({
+        name: d.name,
+        barcode: d.barcode ?? null,
+        categoryId: d.categoryId ?? null,
+        costCents: comboData ? comboData.costCents : pesosToCents(d.cost),
+        priceCents: pesosToCents(d.price),
+        taxRate: d.taxRate ?? null,
+        minStock: isCombo ? null : (d.minStock ?? null),
+        unit: d.unit,
+        image,
+        isCombo,
+        active: formData.get("active") === "on",
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(products.id, id))
+      .run();
+
+    if (comboData) {
+      db.delete(productComponents)
+        .where(eq(productComponents.productId, id))
+        .run();
+      for (const c of comboData.components) {
+        db.insert(productComponents)
+          .values({ productId: id, componentProductId: c.productId, qty: c.qty })
+          .run();
+      }
+    }
+  });
+  tx();
 
   revalidatePath("/productos");
   revalidatePath("/pos");

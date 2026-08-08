@@ -8,7 +8,7 @@ import {
   createCategory,
   deleteCategory,
 } from "@/actions/products";
-import type { Product, Category } from "@/db/schema";
+import type { Product, Category, ProductComponent } from "@/db/schema";
 import { formatCents, formatQty } from "@/lib/money";
 import {
   Button,
@@ -24,10 +24,12 @@ import {
 export function ProductManager({
   products,
   categories,
+  components,
   initialQuery,
 }: {
   products: Product[];
   categories: Category[];
+  components: ProductComponent[];
   initialQuery: string;
 }) {
   const router = useRouter();
@@ -75,6 +77,12 @@ export function ProductManager({
           key={editing?.id ?? "new"}
           product={editing}
           categories={categories}
+          allProducts={products}
+          initialComponents={
+            editing
+              ? components.filter((c) => c.productId === editing.id)
+              : []
+          }
           onDone={() => { setCreating(false); setEditing(null); }}
         />
       )}
@@ -106,7 +114,14 @@ export function ProductManager({
               return (
                 <tr key={p.id} className={!p.active ? "opacity-50" : ""}>
                   <Td className="font-mono text-xs">{p.barcode ?? "—"}</Td>
-                  <Td className="font-medium">{p.name}</Td>
+                  <Td className="font-medium">
+                    {p.name}
+                    {p.isCombo && (
+                      <span className="ml-2">
+                        <Badge color="yellow">COMBO</Badge>
+                      </span>
+                    )}
+                  </Td>
                   <Td>{catName(p.categoryId)}</Td>
                   <Td className="text-right">{formatCents(p.costCents)}</Td>
                   <Td className="text-right font-medium">
@@ -144,15 +159,41 @@ export function ProductManager({
 function ProductForm({
   product,
   categories,
+  allProducts,
+  initialComponents,
   onDone,
 }: {
   product: Product | null;
   categories: Category[];
+  allProducts: Product[];
+  initialComponents: ProductComponent[];
   onDone: () => void;
 }) {
   const action = product ? updateProduct : createProduct;
   const [state, formAction, pending] = useActionState(action, undefined);
+  const [isCombo, setIsCombo] = useState(product?.isCombo ?? false);
+  const [comboRows, setComboRows] = useState<{ productId: number | ""; qty: string }[]>(
+    initialComponents.length > 0
+      ? initialComponents.map((c) => ({
+          productId: c.componentProductId,
+          qty: String(c.qty),
+        }))
+      : [
+          { productId: "", qty: "1" },
+          { productId: "", qty: "1" },
+        ]
+  );
   if (state?.ok) onDone();
+
+  // Solo productos comunes pueden formar parte de un combo
+  const componentOptions = allProducts.filter(
+    (p) => !p.isCombo && p.active && p.id !== product?.id
+  );
+  const componentsJson = JSON.stringify(
+    comboRows
+      .filter((r) => r.productId !== "" && parseFloat(r.qty) > 0)
+      .map((r) => ({ productId: r.productId as number, qty: parseFloat(r.qty) }))
+  );
 
   return (
     <Card>
@@ -161,6 +202,25 @@ function ProductForm({
       </h2>
       <form action={formAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {product && <input type="hidden" name="id" value={product.id} />}
+        <input type="hidden" name="components" value={componentsJson} />
+        <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-2">
+          <input
+            id="p-combo"
+            type="checkbox"
+            name="isCombo"
+            checked={isCombo}
+            onChange={(e) => setIsCombo(e.target.checked)}
+            disabled={!!product && product.isCombo}
+            className="h-4 w-4"
+          />
+          <label htmlFor="p-combo" className="text-sm font-semibold">
+            COMBO{" "}
+            <span className="font-normal text-white/50">
+              (agrupa 2 o más productos ya cargados; al venderlo se descuenta el
+              stock de cada uno)
+            </span>
+          </label>
+        </div>
         <div className="lg:col-span-2">
           <Label>Nombre</Label>
           <Input name="name" defaultValue={product?.name} required autoFocus />
@@ -178,16 +238,18 @@ function ProductForm({
             ))}
           </Select>
         </div>
-        <div>
-          <Label>Precio de costo ($)</Label>
-          <Input
-            name="cost"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={product ? product.costCents / 100 : ""}
-          />
-        </div>
+        {!isCombo && (
+          <div>
+            <Label>Precio de costo ($)</Label>
+            <Input
+              name="cost"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={product ? product.costCents / 100 : ""}
+            />
+          </div>
+        )}
         <div>
           <Label>Precio de venta ($)</Label>
           <Input
@@ -219,22 +281,102 @@ function ProductForm({
             <option value="mt">Metro</option>
           </Select>
         </div>
-        {!product && (
+        {!product && !isCombo && (
           <div>
             <Label>Stock inicial</Label>
             <Input name="stock" type="number" step="any" min="0" defaultValue="0" />
           </div>
         )}
-        <div>
-          <Label>Stock mínimo (alerta)</Label>
-          <Input
-            name="minStock"
-            type="number"
-            step="any"
-            min="0"
-            defaultValue={product?.minStock ?? ""}
-          />
-        </div>
+        {!isCombo && (
+          <div>
+            <Label>Stock mínimo (alerta)</Label>
+            <Input
+              name="minStock"
+              type="number"
+              step="any"
+              min="0"
+              defaultValue={product?.minStock ?? ""}
+            />
+          </div>
+        )}
+        {isCombo && (
+          <div className="sm:col-span-2 lg:col-span-4 rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 space-y-2">
+            <p className="text-sm font-semibold text-yellow-400">
+              Productos que incluye el combo
+            </p>
+            {comboRows.map((row, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <div className="flex-1">
+                  <Select
+                    value={row.productId}
+                    onChange={(e) =>
+                      setComboRows((prev) =>
+                        prev.map((r, idx) =>
+                          idx === i
+                            ? {
+                                ...r,
+                                productId:
+                                  e.target.value === "" ? "" : Number(e.target.value),
+                              }
+                            : r
+                        )
+                      )
+                    }
+                  >
+                    <option value="">Elegir producto…</option>
+                    {componentOptions.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (stock: {p.stock} {p.unit})
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div className="w-24 shrink-0">
+                  <Input
+                    type="number"
+                    step="any"
+                    min="0.001"
+                    value={row.qty}
+                    onChange={(e) =>
+                      setComboRows((prev) =>
+                        prev.map((r, idx) =>
+                          idx === i ? { ...r, qty: e.target.value } : r
+                        )
+                      )
+                    }
+                    className="text-center"
+                    title="Cantidad"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setComboRows((prev) =>
+                      prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev
+                    )
+                  }
+                  className="text-white/40 hover:text-red-400 cursor-pointer px-1"
+                  title="Quitar"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() =>
+                setComboRows((prev) => [...prev, { productId: "", qty: "1" }])
+              }
+            >
+              + Agregar producto
+            </Button>
+            <p className="text-xs text-white/40">
+              El costo del combo se calcula solo (suma de los costos). Si al
+              vender no hay stock de algún componente, la venta se bloquea.
+            </p>
+          </div>
+        )}
         <div className="sm:col-span-2">
           <Label>Foto (para la pantalla de venta)</Label>
           <div className="flex items-center gap-3">

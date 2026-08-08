@@ -49,6 +49,8 @@ export const products = sqliteTable(
     minStock: real("min_stock"),
     unit: text("unit").notNull().default("u"),
     image: text("image"),
+    // Combo: producto compuesto por otros productos (descuenta el stock de ellos)
+    isCombo: integer("is_combo", { mode: "boolean" }).notNull().default(false),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: text("created_at").notNull().default(now),
     updatedAt: text("updated_at").notNull().default(now),
@@ -59,6 +61,22 @@ export const products = sqliteTable(
       .where(sql`barcode IS NOT NULL`),
     index("products_name_idx").on(t.name),
   ]
+);
+
+// Componentes de un combo: qué productos y cuánta cantidad incluye
+export const productComponents = sqliteTable(
+  "product_components",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    productId: integer("product_id")
+      .notNull()
+      .references(() => products.id),
+    componentProductId: integer("component_product_id")
+      .notNull()
+      .references(() => products.id),
+    qty: real("qty").notNull(),
+  },
+  (t) => [index("product_components_product_idx").on(t.productId)]
 );
 
 export const customers = sqliteTable("customers", {
@@ -294,5 +312,6 @@ export type Sale = typeof sales.$inferSelect;
 export type SaleItem = typeof saleItems.$inferSelect;
 export type SalePayment = typeof salePayments.$inferSelect;
 export type Purchase = typeof purchases.$inferSelect;
+export type ProductComponent = typeof productComponents.$inferSelect;
 export type PurchaseItem = typeof purchaseItems.$inferSelect;
 export type StockMovement = typeof stockMovements.$inferSelect;
