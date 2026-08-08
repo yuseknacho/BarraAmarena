@@ -2,7 +2,7 @@
 
 import { db, customers } from "@/db";
 import { eq } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export type ActionResult = { error?: string; ok?: boolean };
@@ -11,7 +11,7 @@ export async function createCustomer(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireUser();
+  await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: "Nombre requerido." };
   db.insert(customers)
@@ -32,7 +32,7 @@ export async function updateCustomer(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireUser();
+  await requireAdmin();
   const id = Number(formData.get("id"));
   const existing = db.select().from(customers).where(eq(customers.id, id)).get();
   if (!existing) return { error: "Cliente no encontrado." };

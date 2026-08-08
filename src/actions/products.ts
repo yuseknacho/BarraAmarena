@@ -210,7 +210,8 @@ export async function adjustStock(
   formData: FormData
 ): Promise<ActionResult> {
   const user = await requireUser();
-  if (user.role !== "admin") return { error: "Solo un administrador puede ajustar stock." };
+  if (user.role === "cajero")
+    return { error: "Solo un administrador puede ajustar stock." };
 
   const productId = Number(formData.get("productId"));
   const newStock = Number(formData.get("newStock"));
