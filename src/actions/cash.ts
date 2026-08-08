@@ -2,7 +2,7 @@
 
 import { db, sqlite, cashSessions, cashMovements } from "@/db";
 import { eq } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
+import { requireSeller } from "@/lib/auth";
 import { getTerminal } from "@/lib/terminal";
 import { computeExpectedCash, getOpenSession } from "@/lib/cash";
 import { pesosToCents } from "@/lib/money";
@@ -14,7 +14,7 @@ export async function openCashSession(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  const user = await requireUser();
+  const user = await requireSeller();
   const terminal = await getTerminal();
   if (!terminal) return { error: "Este dispositivo no tiene terminal vinculada." };
 
@@ -42,7 +42,7 @@ export async function addCashMovement(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  const user = await requireUser();
+  const user = await requireSeller();
   const terminal = await getTerminal();
   if (!terminal) return { error: "Este dispositivo no tiene terminal vinculada." };
 
@@ -74,7 +74,7 @@ export async function closeCashSession(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  const user = await requireUser();
+  const user = await requireSeller();
   const terminal = await getTerminal();
   if (!terminal) return { error: "Este dispositivo no tiene terminal vinculada." };
 

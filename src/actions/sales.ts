@@ -11,7 +11,8 @@ import {
   documentCounters,
 } from "@/db";
 import { eq, like, or, and, sql } from "drizzle-orm";
-import { requireUser, requireAdmin } from "@/lib/auth";
+import { requireUser, requireAdmin, requireSeller } from "@/lib/auth";
+import crypto from "crypto";
 import { getTerminal } from "@/lib/terminal";
 import { getOpenSession } from "@/lib/cash";
 import { revalidatePath } from "next/cache";
@@ -91,7 +92,7 @@ export type CreateSaleResult =
   | { ok: false; error: string };
 
 export async function createSale(input: SaleInput): Promise<CreateSaleResult> {
-  const user = await requireUser();
+  const user = await requireSeller();
   const terminal = await getTerminal();
   if (!terminal)
     return { ok: false, error: "Este dispositivo no tiene terminal vinculada." };
@@ -182,6 +183,8 @@ export async function createSale(input: SaleInput): Promise<CreateSaleResult> {
           discountCents: itemDiscounts + data.discountCents,
           totalCents: total,
           totalCostCents: totalCost,
+          // Token del QR de entrega que imprime el ticket
+          redemptionToken: crypto.randomBytes(8).toString("hex"),
         })
         .returning({ id: sales.id })
         .get();

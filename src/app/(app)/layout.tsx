@@ -9,10 +9,13 @@ const cajeroLinks = [
   { href: "/caja", label: "Caja" },
 ];
 
+const barmanLinks = [{ href: "/canje", label: "Entregas" }];
+
 const superadminLinks = [
   { href: "/panel", label: "Panel de control" },
   { href: "/pos", label: "Vender" },
   { href: "/caja", label: "Caja" },
+  { href: "/canje", label: "Entregas" },
   { href: "/productos", label: "Productos" },
   { href: "/inventario", label: "Inventario" },
   { href: "/compras", label: "Compras" },
@@ -28,7 +31,12 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
-  const links = user.role === "superadmin" ? superadminLinks : cajeroLinks;
+  const links =
+    user.role === "superadmin"
+      ? superadminLinks
+      : user.role === "barman"
+        ? barmanLinks
+        : cajeroLinks;
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">

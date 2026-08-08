@@ -10,7 +10,7 @@ import { z } from "zod";
 const userSchema = z.object({
   username: z.string().min(1, "Usuario requerido").regex(/^[a-zA-Z0-9._-]+$/, "Solo letras, números y . _ -"),
   fullName: z.string().min(1, "Nombre requerido"),
-  role: z.enum(["superadmin", "cajero"]),
+  role: z.enum(["superadmin", "cajero", "barman"]),
 });
 
 export type ActionResult = { error?: string; ok?: boolean };
@@ -60,7 +60,8 @@ export async function updateUser(
   const fullName = String(formData.get("fullName") ?? "").trim();
   const role = String(formData.get("role") ?? user.role) as
     | "superadmin"
-    | "cajero";
+    | "cajero"
+    | "barman";
   const password = String(formData.get("password") ?? "");
   const active = formData.get("active") === "on";
 

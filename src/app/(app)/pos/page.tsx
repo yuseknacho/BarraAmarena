@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { requireSeller } from "@/lib/auth";
 import { getTerminal } from "@/lib/terminal";
 import { getOpenSession } from "@/lib/cash";
 import { db, customers, products, categories } from "@/db";
@@ -9,7 +9,7 @@ import { Card, PageTitle, Button } from "@/components/ui";
 import { PosScreen } from "@/components/pos/pos-screen";
 
 export default async function PosPage() {
-  const user = await requireUser();
+  const user = await requireSeller();
   const terminal = await getTerminal();
   if (!terminal) redirect("/setup-terminal");
 

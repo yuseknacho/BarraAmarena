@@ -12,6 +12,8 @@ import { eq } from "drizzle-orm";
 import { getAllSettings } from "@/lib/settings";
 import { formatCents, formatDate } from "@/lib/money";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import QRCode from "qrcode";
 import { PrintControls } from "./print-controls";
 
 const methodLabels: Record<string, string> = {
@@ -71,6 +73,17 @@ export default async function TicketPage({
 
   const settings = getAllSettings();
   const width = settings.ticket_width === "58" ? "58mm" : "80mm";
+
+  // QR de entrega: apunta al servidor tal como lo ve esta terminal,
+  // así el barman lo abre desde su teléfono en la misma red.
+  let qrDataUrl: string | null = null;
+  if (sale.redemptionToken && sale.status === "completed") {
+    const host = (await headers()).get("host") ?? "localhost:3000";
+    qrDataUrl = await QRCode.toDataURL(
+      `http://${host}/canje/${sale.redemptionToken}`,
+      { margin: 1, width: 180 }
+    );
+  }
 
   return (
     <div className="ticket">
@@ -158,6 +171,24 @@ export default async function TicketPage({
           <span>{formatCents(p.amountCents)}</span>
         </div>
       ))}
+
+      {qrDataUrl && (
+        <>
+          <div className="sep" />
+          <div className="center bold">RETIRO DEL PEDIDO</div>
+          <div className="center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={qrDataUrl}
+              alt="QR de entrega"
+              style={{ width: "34mm", height: "34mm", margin: "2mm auto" }}
+            />
+          </div>
+          <div className="center" style={{ fontSize: 10 }}>
+            Mostrá este código en la barra para retirar tu pedido
+          </div>
+        </>
+      )}
 
       <div className="sep" />
       <div className="center">{settings.ticket_footer}</div>

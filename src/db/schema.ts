@@ -15,7 +15,7 @@ export const users = sqliteTable("users", {
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   fullName: text("full_name").notNull(),
-  role: text("role", { enum: ["superadmin", "cajero"] })
+  role: text("role", { enum: ["superadmin", "cajero", "barman"] })
     .notNull()
     .default("cajero"),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
@@ -162,10 +162,17 @@ export const sales = sqliteTable(
       .default("completed"),
     voidedAt: text("voided_at"),
     voidedByUserId: integer("voided_by_user_id").references(() => users.id),
+    // Canje por QR: el barman escanea el ticket para entregar el pedido
+    redemptionToken: text("redemption_token"),
+    redeemedAt: text("redeemed_at"),
+    redeemedByUserId: integer("redeemed_by_user_id").references(() => users.id),
     createdAt: text("created_at").notNull().default(now),
   },
   (t) => [
     uniqueIndex("sales_doc_idx").on(t.docType, t.docNumber),
+    uniqueIndex("sales_redemption_token_idx")
+      .on(t.redemptionToken)
+      .where(sql`redemption_token IS NOT NULL`),
     index("sales_created_at_idx").on(t.createdAt),
     index("sales_cash_session_idx").on(t.cashSessionId),
   ]

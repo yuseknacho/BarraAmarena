@@ -5,12 +5,13 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 
-// Dos roles: Super Admin (control total) y cajero (las cuentas de cada caja).
+// Roles: Super Admin (control total), cajero (las cuentas de cada caja)
+// y barman (solo escanea el QR del ticket para entregar pedidos).
 export interface SessionData {
   userId?: number;
   username?: string;
   fullName?: string;
-  role?: "superadmin" | "cajero";
+  role?: "superadmin" | "cajero" | "barman";
 }
 
 // El secreto se genera una vez y se guarda en data/ para que el sistema
@@ -64,3 +65,10 @@ export async function requireAdmin(): Promise<Required<SessionData>> {
 }
 
 export const requireSuperAdmin = requireAdmin;
+
+// Vender y manejar caja: cajeros y Super Admin (el barman no vende).
+export async function requireSeller(): Promise<Required<SessionData>> {
+  const user = await requireUser();
+  if (user.role === "barman") redirect("/canje");
+  return user;
+}

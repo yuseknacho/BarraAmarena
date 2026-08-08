@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { requireSeller } from "@/lib/auth";
 import { getTerminal } from "@/lib/terminal";
 import {
   computeExpectedCash,
@@ -21,7 +21,7 @@ const methodLabels: Record<string, string> = {
 };
 
 export default async function CajaPage() {
-  const user = await requireUser();
+  const user = await requireSeller();
   const terminal = await getTerminal();
   if (!terminal) redirect("/setup-terminal");
 
