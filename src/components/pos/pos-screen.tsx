@@ -192,9 +192,9 @@ export function PosScreen({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-8rem)] min-h-120">
-      {/* Pedido actual */}
-      <div className="lg:w-96 flex flex-col gap-3 lg:order-first order-last min-h-0">
+    <div className="flex flex-row gap-3 h-[calc(100vh-8rem)] min-h-120">
+      {/* Pedido actual — siempre a la izquierda */}
+      <div className="w-72 md:w-80 lg:w-96 shrink-0 flex flex-col gap-3 min-h-0">
         <div className="rounded-xl border border-white/10 bg-neutral-950 flex-1 flex flex-col min-h-0">
           <div className="px-4 py-2.5 border-b border-white/10 flex items-center justify-between">
             <h2 className="font-display tracking-wide uppercase">Pedido</h2>
@@ -356,7 +356,7 @@ export function PosScreen({
               No hay productos en esta vista.
             </p>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
               {visibleProducts.map((p) => (
                 <button
                   key={p.id}
