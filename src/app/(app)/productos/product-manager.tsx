@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   createProduct,
   updateProduct,
   createCategory,
+  deleteCategory,
 } from "@/actions/products";
 import type { Product, Category } from "@/db/schema";
 import { formatCents, formatQty } from "@/lib/money";
@@ -297,6 +298,19 @@ function CategoryForm({
   onDone: () => void;
 }) {
   const [state, formAction, pending] = useActionState(createCategory, undefined);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, startDelete] = useTransition();
+  const router = useRouter();
+
+  const onDelete = (c: Category) => {
+    if (!confirm(`¿Eliminar la categoría "${c.name}"?`)) return;
+    setDeleteError("");
+    startDelete(async () => {
+      const result = await deleteCategory(c.id);
+      if (result.error) setDeleteError(result.error);
+      else router.refresh();
+    });
+  };
 
   return (
     <Card>
@@ -309,7 +323,20 @@ function CategoryForm({
           <span className="text-sm text-white/40">Sin categorías todavía.</span>
         )}
         {categories.map((c) => (
-          <Badge key={c.id} color="blue">{c.name}</Badge>
+          <span
+            key={c.id}
+            className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/15 text-sky-400 px-2.5 py-0.5 text-xs font-medium"
+          >
+            {c.name}
+            <button
+              onClick={() => onDelete(c)}
+              disabled={deleting}
+              className="text-sky-400/60 hover:text-red-400 cursor-pointer disabled:opacity-40"
+              title={`Eliminar "${c.name}"`}
+            >
+              ✕
+            </button>
+          </span>
         ))}
       </div>
       <form action={formAction} className="flex gap-2 max-w-sm">
@@ -317,6 +344,7 @@ function CategoryForm({
         <Button type="submit" disabled={pending}>Agregar</Button>
       </form>
       {state?.error && <p className="text-sm text-red-400 mt-2">{state.error}</p>}
+      {deleteError && <p className="text-sm text-red-400 mt-2">{deleteError}</p>}
     </Card>
   );
 }

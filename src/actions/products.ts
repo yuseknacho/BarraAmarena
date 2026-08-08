@@ -1,7 +1,7 @@
 "use server";
 
 import { db, sqlite, products, categories, stockMovements } from "@/db";
-import { eq, and, ne } from "drizzle-orm";
+import { eq, and, ne, sql } from "drizzle-orm";
 import { requireAdmin, requireUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { pesosToCents } from "@/lib/money";
@@ -202,6 +202,33 @@ export async function createCategory(
   if (dup) return { error: "Ya existe esa categoría." };
   db.insert(categories).values({ name }).run();
   revalidatePath("/productos");
+  return { ok: true };
+}
+
+export async function deleteCategory(id: number): Promise<ActionResult> {
+  await requireAdmin();
+  const category = db
+    .select()
+    .from(categories)
+    .where(eq(categories.id, id))
+    .get();
+  if (!category) return { error: "Categoría no encontrada." };
+
+  const used =
+    db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(products)
+      .where(eq(products.categoryId, id))
+      .get()?.n ?? 0;
+  if (used > 0) {
+    return {
+      error: `No se puede eliminar "${category.name}": ${used} producto${used > 1 ? "s la usan" : " la usa"}. Cambiales la categoría primero.`,
+    };
+  }
+
+  db.delete(categories).where(eq(categories.id, id)).run();
+  revalidatePath("/productos");
+  revalidatePath("/pos");
   return { ok: true };
 }
 
