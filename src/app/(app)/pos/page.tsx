@@ -1,0 +1,41 @@
+import { requireUser } from "@/lib/auth";
+import { getTerminal } from "@/lib/terminal";
+import { getOpenSession } from "@/lib/cash";
+import { db, customers } from "@/db";
+import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Card, PageTitle, Button } from "@/components/ui";
+import { PosScreen } from "@/components/pos/pos-screen";
+
+export default async function PosPage() {
+  await requireUser();
+  const terminal = await getTerminal();
+  if (!terminal) redirect("/setup-terminal");
+
+  const session = getOpenSession(terminal.id);
+  if (!session) {
+    return (
+      <div className="max-w-lg mx-auto mt-12">
+        <PageTitle>Vender — {terminal.name}</PageTitle>
+        <Card className="text-center py-8">
+          <p className="text-gray-600 mb-4">
+            La caja está cerrada. Abrila para empezar a vender.
+          </p>
+          <Link href="/caja">
+            <Button>Abrir caja →</Button>
+          </Link>
+        </Card>
+      </div>
+    );
+  }
+
+  const customerList = db
+    .select({ id: customers.id, name: customers.name })
+    .from(customers)
+    .where(eq(customers.active, true))
+    .orderBy(customers.name)
+    .all();
+
+  return <PosScreen terminalName={terminal.name} customers={customerList} />;
+}
