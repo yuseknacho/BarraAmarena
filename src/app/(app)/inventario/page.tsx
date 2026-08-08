@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { db, products, stockMovements, users } from "@/db";
 import { desc, eq, sql } from "drizzle-orm";
-import { PageTitle, Card, Th, Td, Badge } from "@/components/ui";
+import { PageTitle, Card, Th, Td, Badge, PageHelp } from "@/components/ui";
 import { formatQty, formatDate } from "@/lib/money";
 import { AdjustStockForm } from "./adjust-form";
 
@@ -129,6 +129,7 @@ export default async function InventarioPage() {
           </tbody>
         </table>
       </Card>
+      <PageHelp>Control del stock real: alertas cuando un producto está por debajo del mínimo, ajustes manuales después de un conteo físico (siempre con motivo) y el historial completo de cada movimiento de mercadería.</PageHelp>
     </div>
   );
 }

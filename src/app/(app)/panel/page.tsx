@@ -1,7 +1,7 @@
 import { requireSuperAdmin } from "@/lib/auth";
 import { toRange, todayLocal, getByPaymentMethod, getSummary } from "@/lib/reports";
 import { getTerminalPanels, getClosedSessions } from "@/lib/panel";
-import { PageTitle, Card, Th, Td, Badge, Button } from "@/components/ui";
+import { PageTitle, Card, Th, Td, Badge, Button, PageHelp } from "@/components/ui";
 import { formatCents, formatDate } from "@/lib/money";
 import { AutoRefresh } from "./auto-refresh";
 import Link from "next/link";
@@ -282,6 +282,7 @@ export default async function PanelPage({
           </table>
         </Card>
       </div>
+      <PageHelp>Acá ves en vivo cuánto se recaudó, la ganancia y el estado de cada caja: quién está vendiendo, cuánto efectivo debería haber y cómo cerraron los arqueos. Se actualiza solo cada 30 segundos.</PageHelp>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { db, purchases, purchaseItems, suppliers, users, products } from "@/db";
 import { desc, eq } from "drizzle-orm";
-import { PageTitle, Card, Th, Td } from "@/components/ui";
+import { PageTitle, Card, Th, Td, PageHelp } from "@/components/ui";
 import { formatCents, formatDate } from "@/lib/money";
 import { PurchaseForm } from "./purchase-form";
 
@@ -85,6 +85,7 @@ export default async function ComprasPage() {
           </tbody>
         </table>
       </Card>
+      <PageHelp>Registrá acá lo que le comprás a tus proveedores: al confirmar una compra, el stock de los productos sube automáticamente y el costo se actualiza al de esa compra.</PageHelp>
     </div>
   );
 }

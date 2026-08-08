@@ -9,7 +9,7 @@ import {
   getTopProducts,
   getStockValuation,
 } from "@/lib/reports";
-import { PageTitle, Card, Th, Td, Button } from "@/components/ui";
+import { PageTitle, Card, Th, Td, Button, PageHelp } from "@/components/ui";
 import { formatCents } from "@/lib/money";
 import Link from "next/link";
 
@@ -253,6 +253,7 @@ export default async function ReportesPage({
           </table>
         </Card>
       </div>
+      <PageHelp>Los números del negocio en el período que elijas: ventas, ganancia real, medios de pago, productos más vendidos y valor del stock. Desde acá también se exporta a Excel (CSV) y se anulan ventas.</PageHelp>
     </div>
   );
 }

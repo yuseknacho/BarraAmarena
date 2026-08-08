@@ -113,6 +113,14 @@ export function Td({
   );
 }
 
+export function PageHelp({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mt-6 text-sm text-white/40 border-t border-white/10 pt-3">
+      💡 {children}
+    </p>
+  );
+}
+
 export function Badge({
   color = "gray",
   children,

@@ -9,7 +9,7 @@ import { db, cashMovements, users } from "@/db";
 import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { PageTitle, Card, Th, Td, Badge, Button } from "@/components/ui";
+import { PageTitle, Card, Th, Td, Badge, Button, PageHelp } from "@/components/ui";
 import { formatCents, formatDate } from "@/lib/money";
 import { OpenSessionForm, MovementForm, CloseSessionForm } from "./forms";
 
@@ -165,6 +165,7 @@ export default async function CajaPage() {
           </tbody>
         </table>
       </Card>
+      <PageHelp>Acá se maneja la plata física de esta terminal: se abre la caja con el efectivo inicial, se anotan ingresos y egresos con su motivo, y al cerrar se cuenta la plata — el sistema calcula cuánto debería haber y registra la diferencia.</PageHelp>
     </div>
   );
 }

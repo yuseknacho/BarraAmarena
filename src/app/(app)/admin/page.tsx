@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
-import { Card, PageTitle } from "@/components/ui";
+import { Card, PageTitle, PageHelp } from "@/components/ui";
 import Link from "next/link";
 
 const sections = [
@@ -35,6 +35,7 @@ export default async function AdminPage() {
           </Link>
         ))}
       </div>
+      <PageHelp>La configuración del sistema: usuarios y contraseñas, las terminales (cajas) y qué computadora usa cada una, los datos del negocio, el formato del ticket y los respaldos de la base de datos.</PageHelp>
     </div>
   );
 }

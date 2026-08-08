@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { db, suppliers } from "@/db";
-import { PageTitle } from "@/components/ui";
+import { PageTitle, PageHelp } from "@/components/ui";
 import { SupplierList } from "./supplier-list";
 
 export default async function ProveedoresPage() {
@@ -10,6 +10,7 @@ export default async function ProveedoresPage() {
     <div>
       <PageTitle>Proveedores</PageTitle>
       <SupplierList suppliers={rows} />
+      <PageHelp>La agenda de tus proveedores con sus datos de contacto. Se usan al registrar compras, para saber a quién le compraste cada mercadería.</PageHelp>
     </div>
   );
 }
