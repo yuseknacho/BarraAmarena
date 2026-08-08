@@ -31,7 +31,7 @@ export function UserList({ users }: { users: UserRow[] }) {
 
       <Card className="p-0 overflow-x-auto">
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>Usuario</Th>
               <Th>Nombre</Th>
@@ -40,7 +40,7 @@ export function UserList({ users }: { users: UserRow[] }) {
               <Th></Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {users.map((u) => (
               <tr key={u.id}>
                 <Td className="font-medium">{u.username}</Td>
@@ -100,7 +100,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           </Select>
         </div>
         {state?.error && (
-          <p className="text-sm text-red-600 sm:col-span-2">{state.error}</p>
+          <p className="text-sm text-red-400 sm:col-span-2">{state.error}</p>
         )}
         <div className="flex gap-2 sm:col-span-2">
           <Button type="submit" disabled={pending}>Crear</Button>
@@ -148,7 +148,7 @@ function EditForm({ user, onDone }: { user: UserRow; onDone: () => void }) {
           <label htmlFor="active" className="text-sm">Activo</label>
         </div>
         {state?.error && (
-          <p className="text-sm text-red-600 sm:col-span-2">{state.error}</p>
+          <p className="text-sm text-red-400 sm:col-span-2">{state.error}</p>
         )}
         <div className="flex gap-2 sm:col-span-2">
           <Button type="submit" disabled={pending}>Guardar</Button>

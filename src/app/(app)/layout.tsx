@@ -1,7 +1,8 @@
 import { requireUser } from "@/lib/auth";
-import { getSetting } from "@/lib/settings";
 import { logoutAction } from "@/actions/auth";
 import { NavLink } from "@/components/nav-link";
+import { Logo } from "@/components/logo";
+import Link from "next/link";
 
 const cajeroLinks = [
   { href: "/pos", label: "Vender" },
@@ -26,14 +27,15 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
-  const businessName = getSetting("business_name");
   const links = user.role === "admin" ? adminLinks : cajeroLinks;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-gray-900 text-white">
-        <div className="flex items-center gap-6 px-4 h-12">
-          <span className="font-bold whitespace-nowrap">{businessName}</span>
+    <div className="min-h-screen flex flex-col bg-black text-white">
+      <header className="bg-neutral-950 border-b border-white/10">
+        <div className="flex items-center gap-4 px-4 h-14">
+          <Link href="/pos" className="shrink-0">
+            <Logo heightClass="h-8" />
+          </Link>
           <nav className="flex items-center gap-1 overflow-x-auto flex-1">
             {links.map((l) => (
               <NavLink key={l.href} href={l.href}>
@@ -42,9 +44,9 @@ export default async function AppLayout({
             ))}
           </nav>
           <div className="flex items-center gap-3 whitespace-nowrap">
-            <span className="text-sm text-gray-300">{user.fullName}</span>
+            <span className="text-sm text-white/60">{user.fullName}</span>
             <form action={logoutAction}>
-              <button className="text-sm text-gray-400 hover:text-white cursor-pointer">
+              <button className="text-sm text-white/40 hover:text-white cursor-pointer">
                 Salir
               </button>
             </form>

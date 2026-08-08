@@ -13,7 +13,7 @@ export function NewTerminalForm() {
         <div className="flex-1">
           <Input name="name" placeholder="Nombre, ej: Caja 1" required />
           {state?.error && (
-            <p className="text-sm text-red-600 mt-1">{state.error}</p>
+            <p className="text-sm text-red-400 mt-1">{state.error}</p>
           )}
         </div>
         <Button type="submit" disabled={pending}>

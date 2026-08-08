@@ -10,12 +10,11 @@ export function Button({
   return (
     <button
       className={clsx(
-        "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
-        variant === "primary" && "bg-blue-600 text-white hover:bg-blue-700",
-        variant === "secondary" &&
-          "bg-white text-gray-800 border border-gray-300 hover:bg-gray-50",
+        "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+        variant === "primary" && "bg-brand text-black hover:bg-brand-dark",
+        variant === "secondary" && "bg-white/10 text-white hover:bg-white/20",
         variant === "danger" && "bg-red-600 text-white hover:bg-red-700",
-        variant === "ghost" && "text-gray-600 hover:bg-gray-100",
+        variant === "ghost" && "text-white/60 hover:bg-white/10 hover:text-white",
         className
       )}
       {...props}
@@ -32,7 +31,7 @@ export function Input({
   return (
     <input
       className={clsx(
-        "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+        "w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand [color-scheme:dark]",
         className
       )}
       {...props}
@@ -47,7 +46,7 @@ export function Select({
   return (
     <select
       className={clsx(
-        "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500",
+        "w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand [color-scheme:dark] [&>option]:bg-neutral-900",
         className
       )}
       {...props}
@@ -61,7 +60,7 @@ export function Label({
 }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
-      className={clsx("block text-sm font-medium text-gray-700 mb-1", className)}
+      className={clsx("block text-xs text-white/50 mb-1", className)}
       {...props}
     />
   );
@@ -74,7 +73,7 @@ export function Card({
   return (
     <div
       className={clsx(
-        "rounded-lg border border-gray-200 bg-white p-4 shadow-sm",
+        "rounded-xl border border-white/10 bg-neutral-950 p-4",
         className
       )}
       {...props}
@@ -83,7 +82,11 @@ export function Card({
 }
 
 export function PageTitle({ children }: { children: React.ReactNode }) {
-  return <h1 className="text-xl font-bold text-gray-900 mb-4">{children}</h1>;
+  return (
+    <h1 className="font-display text-2xl tracking-wide uppercase text-white mb-4">
+      {children}
+    </h1>
+  );
 }
 
 export function Th({
@@ -93,7 +96,7 @@ export function Th({
   return (
     <th
       className={clsx(
-        "px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500",
+        "px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-white/50",
         className
       )}
       {...props}
@@ -106,7 +109,7 @@ export function Td({
   ...props
 }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={clsx("px-3 py-2 text-sm text-gray-800", className)} {...props} />
+    <td className={clsx("px-3 py-2 text-sm text-white/90", className)} {...props} />
   );
 }
 
@@ -118,11 +121,11 @@ export function Badge({
   children: React.ReactNode;
 }) {
   const colors = {
-    gray: "bg-gray-100 text-gray-700",
-    green: "bg-green-100 text-green-700",
-    red: "bg-red-100 text-red-700",
-    yellow: "bg-yellow-100 text-yellow-800",
-    blue: "bg-blue-100 text-blue-700",
+    gray: "bg-white/10 text-white/70",
+    green: "bg-brand/15 text-brand-light",
+    red: "bg-red-500/15 text-red-400",
+    yellow: "bg-yellow-500/15 text-yellow-400",
+    blue: "bg-sky-500/15 text-sky-400",
   };
   return (
     <span

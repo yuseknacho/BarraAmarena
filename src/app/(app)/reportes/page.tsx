@@ -47,13 +47,13 @@ export default async function ReportesPage({
         <div className="flex gap-3 text-sm items-center">
           <Link
             href={`/reportes/ventas?from=${from}&to=${to}`}
-            className="text-blue-600 hover:underline"
+            className="text-brand hover:underline"
           >
             Ver ventas una por una →
           </Link>
           <a
             href={`/api/export/ventas?from=${from}&to=${to}`}
-            className="text-blue-600 hover:underline"
+            className="text-brand hover:underline"
           >
             Exportar CSV ↓
           </a>
@@ -63,25 +63,25 @@ export default async function ReportesPage({
       <Card>
         <form method="GET" className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white/80 mb-1">
               Desde
             </label>
             <input
               type="date"
               name="from"
               defaultValue={from}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm [color-scheme:dark]"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-white/80 mb-1">
               Hasta
             </label>
             <input
               type="date"
               name="to"
               defaultValue={to}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm [color-scheme:dark]"
             />
           </div>
           <Button type="submit" variant="secondary">
@@ -92,27 +92,27 @@ export default async function ReportesPage({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <p className="text-xs text-gray-500 uppercase">Ventas</p>
+          <p className="text-xs text-white/50 uppercase">Ventas</p>
           <p className="text-2xl font-bold">{formatCents(summary.totalCents)}</p>
-          <p className="text-xs text-gray-400">{summary.count} operaciones</p>
+          <p className="text-xs text-white/40">{summary.count} operaciones</p>
         </Card>
         <Card>
-          <p className="text-xs text-gray-500 uppercase">Ganancia</p>
-          <p className="text-2xl font-bold text-green-700">
+          <p className="text-xs text-white/50 uppercase">Ganancia</p>
+          <p className="text-2xl font-bold text-brand-light">
             {formatCents(profitCents)}
           </p>
-          <p className="text-xs text-gray-400">venta − costo</p>
+          <p className="text-xs text-white/40">venta − costo</p>
         </Card>
         <Card>
-          <p className="text-xs text-gray-500 uppercase">Descuentos</p>
+          <p className="text-xs text-white/50 uppercase">Descuentos</p>
           <p className="text-2xl font-bold">{formatCents(summary.discountCents)}</p>
         </Card>
         <Card>
-          <p className="text-xs text-gray-500 uppercase">Stock valorizado</p>
+          <p className="text-xs text-white/50 uppercase">Stock valorizado</p>
           <p className="text-2xl font-bold">
             {formatCents(valuation.costValueCents)}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-white/40">
             a precio de venta: {formatCents(valuation.saleValueCents)}
           </p>
         </Card>
@@ -122,17 +122,17 @@ export default async function ReportesPage({
         <Card className="p-0 overflow-x-auto">
           <div className="px-4 pt-4 pb-2 font-semibold">Por medio de pago</div>
           <table className="w-full">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-white/10 bg-white/5">
               <tr>
                 <Th>Medio</Th>
                 <Th className="text-right">Ventas</Th>
                 <Th className="text-right">Total</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/10">
               {byMethod.length === 0 && (
                 <tr>
-                  <Td colSpan={3} className="text-center text-gray-400 py-6">
+                  <Td colSpan={3} className="text-center text-white/40 py-6">
                     Sin ventas en el período.
                   </Td>
                 </tr>
@@ -153,7 +153,7 @@ export default async function ReportesPage({
         <Card className="p-0 overflow-x-auto">
           <div className="px-4 pt-4 pb-2 font-semibold">Por terminal</div>
           <table className="w-full">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-white/10 bg-white/5">
               <tr>
                 <Th>Terminal</Th>
                 <Th className="text-right">Ventas</Th>
@@ -161,10 +161,10 @@ export default async function ReportesPage({
                 <Th className="text-right">Ganancia</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/10">
               {byTerminal.length === 0 && (
                 <tr>
-                  <Td colSpan={4} className="text-center text-gray-400 py-6">
+                  <Td colSpan={4} className="text-center text-white/40 py-6">
                     Sin ventas en el período.
                   </Td>
                 </tr>
@@ -176,7 +176,7 @@ export default async function ReportesPage({
                   <Td className="text-right font-medium">
                     {formatCents(t.totalCents)}
                   </Td>
-                  <Td className="text-right text-green-700">
+                  <Td className="text-right text-brand-light">
                     {formatCents(t.profitCents)}
                   </Td>
                 </tr>
@@ -188,17 +188,17 @@ export default async function ReportesPage({
         <Card className="p-0 overflow-x-auto">
           <div className="px-4 pt-4 pb-2 font-semibold">Por categoría</div>
           <table className="w-full">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-white/10 bg-white/5">
               <tr>
                 <Th>Categoría</Th>
                 <Th className="text-right">Cantidad</Th>
                 <Th className="text-right">Total</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/10">
               {byCategory.length === 0 && (
                 <tr>
-                  <Td colSpan={3} className="text-center text-gray-400 py-6">
+                  <Td colSpan={3} className="text-center text-white/40 py-6">
                     Sin ventas en el período.
                   </Td>
                 </tr>
@@ -221,7 +221,7 @@ export default async function ReportesPage({
             Productos más vendidos
           </div>
           <table className="w-full">
-            <thead className="border-b border-gray-200 bg-gray-50">
+            <thead className="border-b border-white/10 bg-white/5">
               <tr>
                 <Th>Producto</Th>
                 <Th className="text-right">Cantidad</Th>
@@ -229,10 +229,10 @@ export default async function ReportesPage({
                 <Th className="text-right">Ganancia</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/10">
               {topProducts.length === 0 && (
                 <tr>
-                  <Td colSpan={4} className="text-center text-gray-400 py-6">
+                  <Td colSpan={4} className="text-center text-white/40 py-6">
                     Sin ventas en el período.
                   </Td>
                 </tr>
@@ -244,7 +244,7 @@ export default async function ReportesPage({
                   <Td className="text-right font-medium">
                     {formatCents(p.totalCents)}
                   </Td>
-                  <Td className="text-right text-green-700">
+                  <Td className="text-right text-brand-light">
                     {formatCents(p.profitCents)}
                   </Td>
                 </tr>

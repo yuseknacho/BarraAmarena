@@ -17,8 +17,10 @@ export function NavLink({
     <Link
       href={href}
       className={clsx(
-        "px-3 py-1.5 rounded-md text-sm whitespace-nowrap",
-        active ? "bg-gray-700 text-white" : "text-gray-300 hover:text-white"
+        "px-3 py-1.5 rounded-md text-sm whitespace-nowrap transition",
+        active
+          ? "bg-brand/15 text-brand-light font-semibold"
+          : "text-white/60 hover:bg-white/10 hover:text-white"
       )}
     >
       {children}

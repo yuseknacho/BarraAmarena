@@ -1,7 +1,7 @@
 import { requireUser } from "@/lib/auth";
 import { getTerminal } from "@/lib/terminal";
 import { getOpenSession } from "@/lib/cash";
-import { db, customers } from "@/db";
+import { db, customers, products, categories } from "@/db";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -19,7 +19,7 @@ export default async function PosPage() {
       <div className="max-w-lg mx-auto mt-12">
         <PageTitle>Vender — {terminal.name}</PageTitle>
         <Card className="text-center py-8">
-          <p className="text-gray-600 mb-4">
+          <p className="text-white/70 mb-4">
             La caja está cerrada. Abrila para empezar a vender.
           </p>
           <Link href="/caja">
@@ -37,5 +37,34 @@ export default async function PosPage() {
     .orderBy(customers.name)
     .all();
 
-  return <PosScreen terminalName={terminal.name} customers={customerList} />;
+  const productList = db
+    .select({
+      id: products.id,
+      barcode: products.barcode,
+      name: products.name,
+      priceCents: products.priceCents,
+      stock: products.stock,
+      unit: products.unit,
+      image: products.image,
+      categoryId: products.categoryId,
+    })
+    .from(products)
+    .where(eq(products.active, true))
+    .orderBy(products.name)
+    .all();
+
+  const categoryList = db
+    .select()
+    .from(categories)
+    .orderBy(categories.name)
+    .all();
+
+  return (
+    <PosScreen
+      terminalName={terminal.name}
+      customers={customerList}
+      products={productList}
+      categories={categoryList}
+    />
+  );
 }

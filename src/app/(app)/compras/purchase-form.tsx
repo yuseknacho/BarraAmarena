@@ -134,7 +134,7 @@ export function PurchaseForm({
       </div>
 
       <div className="space-y-2 mb-3">
-        <div className="grid grid-cols-[1fr_100px_120px_120px_32px] gap-2 text-xs uppercase text-gray-500 font-semibold">
+        <div className="grid grid-cols-[1fr_100px_120px_120px_32px] gap-2 text-xs uppercase text-white/50 font-semibold">
           <span>Producto</span>
           <span>Cantidad</span>
           <span>Costo unit. ($)</span>
@@ -186,7 +186,7 @@ export function PurchaseForm({
                     prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev
                   )
                 }
-                className="text-gray-400 hover:text-red-600 cursor-pointer"
+                className="text-white/40 hover:text-red-400 cursor-pointer"
                 title="Quitar"
               >
                 ✕
@@ -202,7 +202,7 @@ export function PurchaseForm({
         </Button>
       </div>
 
-      <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+      <div className="flex items-center justify-between border-t border-white/10 pt-3">
         <span className="font-semibold">
           Total: <span className="text-lg">{formatCents(totalCents)}</span>
         </span>
@@ -213,8 +213,8 @@ export function PurchaseForm({
           </Button>
         </div>
       </div>
-      {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
-      <p className="text-xs text-gray-400 mt-2">
+      {error && <p className="text-sm text-red-400 mt-2">{error}</p>}
+      <p className="text-xs text-white/40 mt-2">
         Al confirmar, el stock sube y el costo del producto se actualiza al
         costo de esta compra.
       </p>

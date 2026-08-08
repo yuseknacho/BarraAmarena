@@ -27,7 +27,7 @@ export function CustomerList({ customers }: { customers: Customer[] }) {
 
       <Card className="p-0 overflow-x-auto">
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>Nombre</Th>
               <Th>DNI/CUIT</Th>
@@ -37,10 +37,10 @@ export function CustomerList({ customers }: { customers: Customer[] }) {
               <Th></Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {customers.length === 0 && (
               <tr>
-                <Td colSpan={6} className="text-center text-gray-400 py-8">
+                <Td colSpan={6} className="text-center text-white/40 py-8">
                   Sin clientes registrados. Las ventas pueden hacerse a
                   “Consumidor final” sin cargar clientes.
                 </Td>
@@ -125,7 +125,7 @@ function CustomerForm({
           </div>
         )}
         {state?.error && (
-          <p className="text-sm text-red-600 sm:col-span-2 lg:col-span-3">
+          <p className="text-sm text-red-400 sm:col-span-2 lg:col-span-3">
             {state.error}
           </p>
         )}

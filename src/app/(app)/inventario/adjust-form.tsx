@@ -46,10 +46,10 @@ export function AdjustStockForm({
           />
         </div>
         {state?.error && (
-          <p className="text-sm text-red-600 lg:col-span-4">{state.error}</p>
+          <p className="text-sm text-red-400 lg:col-span-4">{state.error}</p>
         )}
         {state?.ok && (
-          <p className="text-sm text-green-700 lg:col-span-4">
+          <p className="text-sm text-brand-light lg:col-span-4">
             Stock ajustado correctamente.
           </p>
         )}

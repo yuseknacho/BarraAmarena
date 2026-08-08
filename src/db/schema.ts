@@ -48,6 +48,7 @@ export const products = sqliteTable(
     stock: real("stock").notNull().default(0),
     minStock: real("min_stock"),
     unit: text("unit").notNull().default("u"),
+    image: text("image"),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: text("created_at").notNull().default(now),
     updatedAt: text("updated_at").notNull().default(now),

@@ -52,7 +52,7 @@ export default async function ComprasPage() {
       <Card className="p-0 overflow-x-auto">
         <div className="px-4 pt-4 pb-2 font-semibold">Últimas compras</div>
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>#</Th>
               <Th>Fecha</Th>
@@ -63,10 +63,10 @@ export default async function ComprasPage() {
               <Th>Cargó</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {recent.length === 0 && (
               <tr>
-                <Td colSpan={7} className="text-center text-gray-400 py-8">
+                <Td colSpan={7} className="text-center text-white/40 py-8">
                   Sin compras registradas.
                 </Td>
               </tr>

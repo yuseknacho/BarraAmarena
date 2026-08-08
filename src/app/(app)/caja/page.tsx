@@ -33,14 +33,14 @@ export default async function CajaPage() {
         <PageTitle>Caja — {terminal.name}</PageTitle>
         <Card>
           <h2 className="font-semibold mb-1">Caja cerrada</h2>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-white/50 mb-4">
             Abrí la caja para empezar a vender en esta terminal.
           </p>
           <OpenSessionForm />
         </Card>
         {user.role === "admin" && (
           <p className="mt-4 text-sm">
-            <Link href="/caja/historial" className="text-blue-600 hover:underline">
+            <Link href="/caja/historial" className="text-brand hover:underline">
               Ver historial de cajas →
             </Link>
           </p>
@@ -78,7 +78,7 @@ export default async function CajaPage() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <PageTitle>Caja — {terminal.name}</PageTitle>
         {user.role === "admin" && (
-          <Link href="/caja/historial" className="text-sm text-blue-600 hover:underline">
+          <Link href="/caja/historial" className="text-sm text-brand hover:underline">
             Historial de cajas →
           </Link>
         )}
@@ -86,16 +86,16 @@ export default async function CajaPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <p className="text-xs text-gray-500 uppercase">Apertura</p>
+          <p className="text-xs text-white/50 uppercase">Apertura</p>
           <p className="text-lg font-bold">{formatCents(session.openingAmountCents)}</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-white/40">
             {formatDate(session.openedAt)} · {openedBy?.fullName}
           </p>
         </Card>
         <Card>
-          <p className="text-xs text-gray-500 uppercase">Ventas de la sesión</p>
+          <p className="text-xs text-white/50 uppercase">Ventas de la sesión</p>
           <p className="text-lg font-bold">{formatCents(totalSalesCents)}</p>
-          <div className="text-xs text-gray-400 space-x-2">
+          <div className="text-xs text-white/40 space-x-2">
             {salesTotals.map((t) => (
               <span key={t.method}>
                 {methodLabels[t.method]}: {formatCents(t.total)}
@@ -104,9 +104,9 @@ export default async function CajaPage() {
           </div>
         </Card>
         <Card>
-          <p className="text-xs text-gray-500 uppercase">Efectivo esperado</p>
-          <p className="text-lg font-bold text-green-700">{formatCents(expected)}</p>
-          <p className="text-xs text-gray-400">apertura + mov. + ventas efectivo</p>
+          <p className="text-xs text-white/50 uppercase">Efectivo esperado</p>
+          <p className="text-lg font-bold text-brand-light">{formatCents(expected)}</p>
+          <p className="text-xs text-white/40">apertura + mov. + ventas efectivo</p>
         </Card>
         <Card className="flex items-center justify-center">
           <Link href="/pos">
@@ -129,7 +129,7 @@ export default async function CajaPage() {
       <Card className="p-0 overflow-x-auto">
         <div className="px-4 pt-4 pb-2 font-semibold">Movimientos de la sesión</div>
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>Fecha</Th>
               <Th>Tipo</Th>
@@ -138,10 +138,10 @@ export default async function CajaPage() {
               <Th>Usuario</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {movements.length === 0 && (
               <tr>
-                <Td colSpan={5} className="text-center text-gray-400 py-6">
+                <Td colSpan={5} className="text-center text-white/40 py-6">
                   Sin movimientos manuales.
                 </Td>
               </tr>

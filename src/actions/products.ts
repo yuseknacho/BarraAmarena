@@ -6,6 +6,38 @@ import { requireAdmin, requireUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { pesosToCents } from "@/lib/money";
 import { z } from "zod";
+import path from "path";
+import fs from "fs";
+import crypto from "crypto";
+
+const UPLOADS_DIR = path.join(process.cwd(), "data", "uploads");
+const IMAGE_EXT: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
+
+// Guarda la foto subida y devuelve el nombre de archivo (o null si no vino).
+async function saveImage(value: FormDataEntryValue | null): Promise<string | null> {
+  if (!(value instanceof File) || value.size === 0) return null;
+  if (value.size > 5 * 1024 * 1024)
+    throw new Error("La imagen no puede superar los 5 MB.");
+  const ext = IMAGE_EXT[value.type];
+  if (!ext) throw new Error("Formato de imagen no soportado (usá JPG, PNG o WebP).");
+  const name = crypto.randomBytes(8).toString("hex") + ext;
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  fs.writeFileSync(path.join(UPLOADS_DIR, name), Buffer.from(await value.arrayBuffer()));
+  return name;
+}
+
+function deleteImage(name: string | null) {
+  if (!name) return;
+  try {
+    fs.unlinkSync(path.join(UPLOADS_DIR, name));
+  } catch {
+    // si no existe, no pasa nada
+  }
+}
 
 export type ActionResult = { error?: string; ok?: boolean };
 
@@ -53,6 +85,13 @@ export async function createProduct(
 
   const initialStock = Number(formData.get("stock") ?? 0) || 0;
 
+  let image: string | null;
+  try {
+    image = await saveImage(formData.get("image"));
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Error al guardar la imagen." };
+  }
+
   const tx = sqlite.transaction(() => {
     const inserted = db
       .insert(products)
@@ -66,6 +105,7 @@ export async function createProduct(
         minStock: d.minStock ?? null,
         unit: d.unit,
         stock: initialStock,
+        image,
       })
       .returning({ id: products.id })
       .get();
@@ -111,6 +151,20 @@ export async function updateProduct(
     if (dup) return { error: "Otro producto ya usa ese código de barras." };
   }
 
+  let image = existing.image;
+  try {
+    const uploaded = await saveImage(formData.get("image"));
+    if (uploaded) {
+      deleteImage(existing.image);
+      image = uploaded;
+    } else if (formData.get("removeImage") === "on") {
+      deleteImage(existing.image);
+      image = null;
+    }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Error al guardar la imagen." };
+  }
+
   db.update(products)
     .set({
       name: d.name,
@@ -121,6 +175,7 @@ export async function updateProduct(
       taxRate: d.taxRate ?? null,
       minStock: d.minStock ?? null,
       unit: d.unit,
+      image,
       active: formData.get("active") === "on",
       updatedAt: new Date().toISOString(),
     })
@@ -128,6 +183,7 @@ export async function updateProduct(
     .run();
 
   revalidatePath("/productos");
+  revalidatePath("/pos");
   return { ok: true };
 }
 

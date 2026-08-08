@@ -28,11 +28,11 @@ export function VoidSaleButton({ saleId }: { saleId: number }) {
       <button
         onClick={onClick}
         disabled={pending}
-        className="text-sm text-red-600 hover:underline cursor-pointer disabled:opacity-50"
+        className="text-sm text-red-400 hover:underline cursor-pointer disabled:opacity-50"
       >
         {pending ? "Anulando…" : "Anular"}
       </button>
-      {error && <span className="text-xs text-red-600 block">{error}</span>}
+      {error && <span className="text-xs text-red-400 block">{error}</span>}
     </>
   );
 }

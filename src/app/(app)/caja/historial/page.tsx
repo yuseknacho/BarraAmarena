@@ -39,7 +39,7 @@ export default async function HistorialCajasPage() {
       <PageTitle>Historial de cajas</PageTitle>
       <Card className="p-0 overflow-x-auto">
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>#</Th>
               <Th>Terminal</Th>
@@ -52,10 +52,10 @@ export default async function HistorialCajasPage() {
               <Th>Estado</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {rows.length === 0 && (
               <tr>
-                <Td colSpan={9} className="text-center text-gray-400 py-8">
+                <Td colSpan={9} className="text-center text-white/40 py-8">
                   Sin cajas registradas.
                 </Td>
               </tr>
@@ -66,13 +66,13 @@ export default async function HistorialCajasPage() {
                 <Td className="font-medium">{s.terminalName}</Td>
                 <Td className="whitespace-nowrap">
                   {formatDate(s.openedAt)}
-                  <span className="block text-xs text-gray-400">{s.openedByName}</span>
+                  <span className="block text-xs text-white/40">{s.openedByName}</span>
                 </Td>
                 <Td className="whitespace-nowrap">
                   {s.closedAt ? (
                     <>
                       {formatDate(s.closedAt)}
-                      <span className="block text-xs text-gray-400">{s.closedByName}</span>
+                      <span className="block text-xs text-white/40">{s.closedByName}</span>
                     </>
                   ) : (
                     "—"
@@ -90,10 +90,10 @@ export default async function HistorialCajasPage() {
                     <span
                       className={
                         s.differenceCents === 0
-                          ? "text-green-700"
+                          ? "text-brand-light"
                           : s.differenceCents < 0
-                            ? "text-red-600 font-semibold"
-                            : "text-yellow-700 font-semibold"
+                            ? "text-red-400 font-semibold"
+                            : "text-yellow-400 font-semibold"
                       }
                     >
                       {formatCents(s.differenceCents)}

@@ -20,15 +20,15 @@ export default async function SetupTerminalPage() {
     .all();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div className="min-h-screen flex items-center justify-center stage-lights p-4">
       <Card className="w-full max-w-md">
         <h1 className="text-xl font-bold mb-1">Vincular terminal</h1>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-white/50 mb-4">
           Este dispositivo todavía no está asignado a un puesto de venta. Elegí
           qué caja va a ser.
         </p>
         {available.length === 0 ? (
-          <div className="text-sm text-gray-600 space-y-3">
+          <div className="text-sm text-white/70 space-y-3">
             <p>
               No hay terminales disponibles.{" "}
               {user.role === "admin"
@@ -48,7 +48,7 @@ export default async function SetupTerminalPage() {
                 <input type="hidden" name="terminalId" value={t.id} />
                 <Button type="submit" variant="secondary" className="w-full justify-between">
                   <span>{t.name}</span>
-                  <span className="text-blue-600">Usar esta →</span>
+                  <span className="text-brand">Usar esta →</span>
                 </Button>
               </form>
             ))}

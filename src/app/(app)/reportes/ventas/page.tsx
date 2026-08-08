@@ -21,7 +21,7 @@ export default async function VentasPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <PageTitle>Ventas ({from} → {to})</PageTitle>
-        <Link href={`/reportes?from=${from}&to=${to}`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/reportes?from=${from}&to=${to}`} className="text-sm text-brand hover:underline">
           ← Volver a reportes
         </Link>
       </div>
@@ -29,14 +29,14 @@ export default async function VentasPage({
       <Card>
         <form method="GET" className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+            <label className="block text-sm font-medium text-white/80 mb-1">Desde</label>
             <input type="date" name="from" defaultValue={from}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm" />
+              className="rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm [color-scheme:dark]" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+            <label className="block text-sm font-medium text-white/80 mb-1">Hasta</label>
             <input type="date" name="to" defaultValue={to}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm" />
+              className="rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm [color-scheme:dark]" />
           </div>
           <Button type="submit" variant="secondary">Aplicar</Button>
         </form>
@@ -44,7 +44,7 @@ export default async function VentasPage({
 
       <Card className="p-0 overflow-x-auto">
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>Ticket</Th>
               <Th>Fecha</Th>
@@ -55,10 +55,10 @@ export default async function VentasPage({
               <Th></Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {rows.length === 0 && (
               <tr>
-                <Td colSpan={7} className="text-center text-gray-400 py-8">
+                <Td colSpan={7} className="text-center text-white/40 py-8">
                   Sin ventas en el período.
                 </Td>
               </tr>
@@ -81,7 +81,7 @@ export default async function VentasPage({
                   <a
                     href={`/print/ticket/${s.id}`}
                     target="_blank"
-                    className="text-sm text-blue-600 hover:underline mr-3"
+                    className="text-sm text-brand hover:underline mr-3"
                   >
                     Ver ticket
                   </a>

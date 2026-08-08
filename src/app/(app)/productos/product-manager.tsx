@@ -80,7 +80,7 @@ export function ProductManager({
 
       <Card className="p-0 overflow-x-auto">
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>Código</Th>
               <Th>Nombre</Th>
@@ -92,10 +92,10 @@ export function ProductManager({
               <Th></Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {products.length === 0 && (
               <tr>
-                <Td colSpan={8} className="text-center text-gray-400 py-8">
+                <Td colSpan={8} className="text-center text-white/40 py-8">
                   No hay productos. Creá el primero con “+ Nuevo producto”.
                 </Td>
               </tr>
@@ -112,7 +112,7 @@ export function ProductManager({
                     {formatCents(p.priceCents)}
                   </Td>
                   <Td className="text-right">
-                    <span className={low ? "text-red-600 font-semibold" : ""}>
+                    <span className={low ? "text-red-400 font-semibold" : ""}>
                       {formatQty(p.stock, p.unit)}
                     </span>
                     {low && <Badge color="red">bajo</Badge>}
@@ -234,6 +234,31 @@ function ProductForm({
             defaultValue={product?.minStock ?? ""}
           />
         </div>
+        <div className="sm:col-span-2">
+          <Label>Foto (para la pantalla de venta)</Label>
+          <div className="flex items-center gap-3">
+            {product?.image && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/img/${product.image}`}
+                alt={product.name}
+                className="h-14 w-14 rounded-md object-cover border border-white/15"
+              />
+            )}
+            <input
+              type="file"
+              name="image"
+              accept="image/jpeg,image/png,image/webp"
+              className="text-sm text-white/70 file:mr-3 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-white/20 file:cursor-pointer"
+            />
+          </div>
+          {product?.image && (
+            <label className="flex items-center gap-2 mt-2 text-sm text-white/60">
+              <input type="checkbox" name="removeImage" className="h-4 w-4" />
+              Quitar la foto actual
+            </label>
+          )}
+        </div>
         {product && (
           <div className="flex items-center gap-2 pt-6">
             <input
@@ -247,7 +272,7 @@ function ProductForm({
           </div>
         )}
         {state?.error && (
-          <p className="text-sm text-red-600 sm:col-span-2 lg:col-span-4">
+          <p className="text-sm text-red-400 sm:col-span-2 lg:col-span-4">
             {state.error}
           </p>
         )}
@@ -281,7 +306,7 @@ function CategoryForm({
       </div>
       <div className="flex flex-wrap gap-2 mb-3">
         {categories.length === 0 && (
-          <span className="text-sm text-gray-400">Sin categorías todavía.</span>
+          <span className="text-sm text-white/40">Sin categorías todavía.</span>
         )}
         {categories.map((c) => (
           <Badge key={c.id} color="blue">{c.name}</Badge>
@@ -291,7 +316,7 @@ function CategoryForm({
         <Input name="name" placeholder="Nueva categoría…" required />
         <Button type="submit" disabled={pending}>Agregar</Button>
       </form>
-      {state?.error && <p className="text-sm text-red-600 mt-2">{state.error}</p>}
+      {state?.error && <p className="text-sm text-red-400 mt-2">{state.error}</p>}
     </Card>
   );
 }

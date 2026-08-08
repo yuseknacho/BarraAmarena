@@ -26,7 +26,7 @@ export function OpenSessionForm() {
           autoFocus
         />
       </div>
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
       <Button type="submit" disabled={pending}>
         Abrir caja
       </Button>
@@ -56,8 +56,8 @@ export function MovementForm() {
         <Label>Motivo</Label>
         <Input name="reason" placeholder="Ej: pago a proveedor, cambio…" required />
       </div>
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
-      {state?.ok && <p className="text-sm text-green-700">Movimiento registrado.</p>}
+      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
+      {state?.ok && <p className="text-sm text-brand-light">Movimiento registrado.</p>}
       <Button type="submit" disabled={pending}>
         Registrar movimiento
       </Button>
@@ -95,7 +95,7 @@ export function CloseSessionForm({ expectedCents }: { expectedCents: number }) {
       {diff !== null && (
         <p
           className={`text-sm font-medium ${
-            diff === 0 ? "text-green-700" : diff < 0 ? "text-red-600" : "text-yellow-700"
+            diff === 0 ? "text-brand-light" : diff < 0 ? "text-red-400" : "text-yellow-400"
           }`}
         >
           {diff === 0
@@ -109,7 +109,7 @@ export function CloseSessionForm({ expectedCents }: { expectedCents: number }) {
         <Label>Notas (opcional)</Label>
         <Input name="notes" placeholder="Observaciones del cierre…" />
       </div>
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
       <Button
         type="submit"
         variant="danger"

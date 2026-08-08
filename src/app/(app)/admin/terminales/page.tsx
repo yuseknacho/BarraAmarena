@@ -14,7 +14,7 @@ export default async function TerminalesPage() {
       <NewTerminalForm />
       <Card className="p-0 overflow-x-auto">
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>Nombre</Th>
               <Th>Dispositivo</Th>
@@ -22,10 +22,10 @@ export default async function TerminalesPage() {
               <Th></Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {rows.length === 0 && (
               <tr>
-                <Td colSpan={4} className="text-center text-gray-400 py-8">
+                <Td colSpan={4} className="text-center text-white/40 py-8">
                   Creá la primera terminal, por ejemplo “Caja 1”.
                 </Td>
               </tr>
@@ -67,7 +67,7 @@ export default async function TerminalesPage() {
           </tbody>
         </table>
       </Card>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-white/50">
         Cada navegador se vincula a una terminal la primera vez que entra a
         Caja. Para mover una caja a otra computadora, primero desvinculala acá.
       </p>

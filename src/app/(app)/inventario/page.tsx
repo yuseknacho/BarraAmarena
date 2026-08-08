@@ -55,11 +55,11 @@ export default async function InventarioPage() {
       <PageTitle>Inventario</PageTitle>
 
       {lowStock.length > 0 && (
-        <Card className="border-red-300 bg-red-50">
-          <h2 className="font-semibold text-red-800 mb-2">
+        <Card className="border-red-500/30 bg-red-500/10">
+          <h2 className="font-semibold text-red-300 mb-2">
             ⚠️ Productos con stock bajo ({lowStock.length})
           </h2>
-          <ul className="text-sm text-red-700 space-y-1">
+          <ul className="text-sm text-red-300 space-y-1">
             {lowStock.map((p) => (
               <li key={p.id}>
                 {p.name}: {formatQty(p.stock, p.unit)} (mínimo{" "}
@@ -77,7 +77,7 @@ export default async function InventarioPage() {
           Últimos movimientos de stock
         </div>
         <table className="w-full">
-          <thead className="border-b border-gray-200 bg-gray-50">
+          <thead className="border-b border-white/10 bg-white/5">
             <tr>
               <Th>Fecha</Th>
               <Th>Producto</Th>
@@ -88,10 +88,10 @@ export default async function InventarioPage() {
               <Th>Usuario</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-white/10">
             {movements.length === 0 && (
               <tr>
-                <Td colSpan={7} className="text-center text-gray-400 py-8">
+                <Td colSpan={7} className="text-center text-white/40 py-8">
                   Sin movimientos todavía.
                 </Td>
               </tr>
@@ -116,13 +116,13 @@ export default async function InventarioPage() {
                   </Badge>
                 </Td>
                 <Td className="text-right">
-                  <span className={m.qtyDelta < 0 ? "text-red-600" : "text-green-700"}>
+                  <span className={m.qtyDelta < 0 ? "text-red-400" : "text-brand-light"}>
                     {m.qtyDelta > 0 ? "+" : ""}
                     {formatQty(m.qtyDelta, m.unit)}
                   </span>
                 </Td>
                 <Td className="text-right">{formatQty(m.stockAfter, m.unit)}</Td>
-                <Td className="text-gray-500">{m.reason ?? "—"}</Td>
+                <Td className="text-white/50">{m.reason ?? "—"}</Td>
                 <Td>{m.userName}</Td>
               </tr>
             ))}

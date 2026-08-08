@@ -85,7 +85,7 @@ export function PaymentModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
+        className="w-full max-w-md rounded-lg bg-neutral-950 p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => {
           if (e.key === "Enter" && remainingCents === 0) {
@@ -98,7 +98,7 @@ export function PaymentModal({
           <h2 className="text-lg font-bold">Cobrar</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 cursor-pointer"
+            className="text-white/40 hover:text-white/80 cursor-pointer"
           >
             ✕ (Esc)
           </button>
@@ -123,7 +123,7 @@ export function PaymentModal({
         <div className="space-y-2 mb-4">
           {METHODS.map((m) => (
             <div key={m.key} className="flex items-center gap-2">
-              <span className="w-32 text-sm text-gray-600">{m.label}</span>
+              <span className="w-32 text-sm text-white/70">{m.label}</span>
               <Input
                 type="number"
                 step="0.01"
@@ -138,9 +138,9 @@ export function PaymentModal({
         </div>
 
         {cashCents > 0 && (
-          <div className="rounded-md bg-gray-50 border border-gray-200 p-3 mb-4 space-y-2">
+          <div className="rounded-md bg-white/5 border border-white/10 p-3 mb-4 space-y-2">
             <div className="flex items-center gap-2">
-              <span className="w-32 text-sm text-gray-600">Recibido ($)</span>
+              <span className="w-32 text-sm text-white/70">Recibido ($)</span>
               <Input
                 type="number"
                 step="0.01"
@@ -155,7 +155,7 @@ export function PaymentModal({
             {receivedCents > 0 && (
               <p
                 className={`text-right font-semibold ${
-                  changeCents < 0 ? "text-red-600" : "text-green-700"
+                  changeCents < 0 ? "text-red-400" : "text-brand-light"
                 }`}
               >
                 {changeCents < 0
@@ -169,7 +169,7 @@ export function PaymentModal({
         {(pesosToCents(amounts.tarjeta || "0") > 0 ||
           pesosToCents(amounts.transferencia || "0") > 0) && (
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-32 text-sm text-gray-600">Referencia</span>
+            <span className="w-32 text-sm text-white/70">Referencia</span>
             <Input
               value={reference}
               onChange={(e) => setReference(e.target.value)}
@@ -179,14 +179,14 @@ export function PaymentModal({
         )}
 
         <div className="flex items-center justify-between text-sm mb-4">
-          <span className="text-gray-500">Restante</span>
+          <span className="text-white/50">Restante</span>
           <span
             className={`font-semibold ${
               remainingCents === 0
-                ? "text-green-700"
+                ? "text-brand-light"
                 : remainingCents < 0
-                  ? "text-red-600"
-                  : "text-gray-900"
+                  ? "text-red-400"
+                  : "text-white"
             }`}
           >
             {remainingCents < 0
