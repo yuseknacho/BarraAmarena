@@ -9,7 +9,7 @@ export interface SessionData {
   userId?: number;
   username?: string;
   fullName?: string;
-  role?: "admin" | "cajero";
+  role?: "superadmin" | "admin" | "cajero";
 }
 
 // El secreto se genera una vez y se guarda en data/ para que el sistema
@@ -57,6 +57,12 @@ export async function requireUser(): Promise<Required<SessionData>> {
 
 export async function requireAdmin(): Promise<Required<SessionData>> {
   const user = await requireUser();
-  if (user.role !== "admin") redirect("/pos");
+  if (user.role !== "admin" && user.role !== "superadmin") redirect("/pos");
+  return user;
+}
+
+export async function requireSuperAdmin(): Promise<Required<SessionData>> {
+  const user = await requireUser();
+  if (user.role !== "superadmin") redirect("/pos");
   return user;
 }
