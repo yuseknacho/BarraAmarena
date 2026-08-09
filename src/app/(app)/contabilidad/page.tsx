@@ -70,11 +70,10 @@ export default async function ContabilidadPage() {
       </div>
 
       <PageHelp>
-        El libro contable manual de la barra: anotá acá los movimientos de plata
-        que no pasan por las cajas (alquiler, sueldos, proveedores pagados por
-        fuera, aportes, retiros). Cada fila muestra el saldo que va quedando
-        después de esa operación. Las ventas del sistema ya se controlan desde
-        el Panel y Reportes.
+        Libro contable independiente: acá solo aparece lo que cargás a mano.
+        No se mezcla con las ventas, cajas ni reportes del sistema — ningún
+        número de las otras pestañas entra ni sale de este libro. Cada fila
+        muestra el saldo que va quedando después de esa operación.
       </PageHelp>
     </div>
   );
