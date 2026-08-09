@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   openCashSession,
   addCashMovement,
   closeCashSession,
 } from "@/actions/cash";
 import { Button, Input, Label, Select } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { formatCents, pesosToCents } from "@/lib/money";
 
 export function OpenSessionForm() {
@@ -66,6 +67,8 @@ export function MovementForm() {
 }
 
 export function CloseSessionForm({ expectedCents }: { expectedCents: number }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [confirming, setConfirming] = useState(false);
   const [state, formAction, pending] = useActionState(closeCashSession, undefined);
   const [counted, setCounted] = useState("");
 
@@ -73,7 +76,7 @@ export function CloseSessionForm({ expectedCents }: { expectedCents: number }) {
   const diff = countedCents === null ? null : countedCents - expectedCents;
 
   return (
-    <form action={formAction} className="space-y-3">
+    <form ref={formRef} action={formAction} className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div>
           <Label>Efectivo esperado</Label>
@@ -111,17 +114,25 @@ export function CloseSessionForm({ expectedCents }: { expectedCents: number }) {
       </div>
       {state?.error && <p className="text-sm text-red-400">{state.error}</p>}
       <Button
-        type="submit"
+        type="button"
         variant="danger"
         disabled={pending}
-        onClick={(e) => {
-          if (!confirm("¿Cerrar la caja? Esta acción no se puede deshacer.")) {
-            e.preventDefault();
-          }
-        }}
+        onClick={() => setConfirming(true)}
       >
         Cerrar caja
       </Button>
+
+      <ConfirmDialog
+        open={confirming}
+        title="¿Cerrar la caja?"
+        message={`Se registra el arqueo con el efectivo contado que ingresaste. Esta acción no se puede deshacer.`}
+        confirmLabel="Sí, cerrar caja"
+        onConfirm={() => {
+          setConfirming(false);
+          formRef.current?.requestSubmit();
+        }}
+        onCancel={() => setConfirming(false)}
+      />
     </form>
   );
 }

@@ -6,6 +6,7 @@ import { createSale } from "@/actions/sales";
 import { saveProductOrder } from "@/actions/products";
 import { formatCents, pesosToCents } from "@/lib/money";
 import { Button, Select, Card } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PaymentModal } from "./payment-modal";
 
 export interface PosProduct {
@@ -46,6 +47,7 @@ export function PosScreen({
   const [paying, setPaying] = useState(false);
   const [lastSale, setLastSale] = useState<{ saleId: number; docNumber: number } | null>(null);
   const [error, setError] = useState("");
+  const [confirmClear, setConfirmClear] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Modo "Ordenar": arrastrar los cuadrados para acomodarlos (solo Super Admin)
@@ -341,9 +343,7 @@ export function PosScreen({
               <Button
                 variant="secondary"
                 disabled={cart.length === 0}
-                onClick={() => {
-                  if (confirm("¿Vaciar el pedido?")) newSale();
-                }}
+                onClick={() => setConfirmClear(true)}
               >
                 Anular
               </Button>
@@ -515,6 +515,18 @@ export function PosScreen({
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmClear}
+        title="¿Vaciar el pedido?"
+        message="Se quitan todos los productos del pedido actual."
+        confirmLabel="Sí, vaciar"
+        onConfirm={() => {
+          setConfirmClear(false);
+          newSale();
+        }}
+        onCancel={() => setConfirmClear(false)}
+      />
     </div>
   );
 }

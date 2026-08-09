@@ -21,6 +21,7 @@ import {
   Td,
   Badge,
 } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export function ProductManager({
   products,
@@ -40,20 +41,22 @@ export function ProductManager({
   const [search, setSearch] = useState(initialQuery);
   const [deleteError, setDeleteError] = useState("");
   const [deleteInfo, setDeleteInfo] = useState("");
+  const [toDelete, setToDelete] = useState<Product | null>(null);
   const [, startDelete] = useTransition();
 
   const catName = (id: number | null) =>
     categories.find((c) => c.id === id)?.name ?? "—";
 
   const onDeleteProduct = (p: Product) => {
-    if (
-      !confirm(
-        `⚠️ ¿Eliminar "${p.name}"?\n\nDesaparece de la lista y de la pantalla de venta. Si tiene ventas o compras registradas, el historial contable se conserva y lo mostrará como "(producto eliminado)".\n\nEsta acción NO se puede deshacer.`
-      )
-    )
-      return;
     setDeleteError("");
     setDeleteInfo("");
+    setToDelete(p);
+  };
+
+  const confirmDeleteProduct = () => {
+    const p = toDelete;
+    if (!p) return;
+    setToDelete(null);
     startDelete(async () => {
       const result = await deleteProduct(p.id);
       if (result.error) setDeleteError(result.error);
@@ -193,6 +196,16 @@ export function ProductManager({
           </tbody>
         </table>
       </Card>
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        title={`¿Eliminar "${toDelete?.name}"?`}
+        message={
+          'Desaparece de la lista y de la pantalla de venta. Si tiene ventas o compras registradas, el historial contable se conserva y lo mostrará como "(producto eliminado)".\n\nEsta acción NO se puede deshacer.'
+        }
+        onConfirm={confirmDeleteProduct}
+        onCancel={() => setToDelete(null)}
+      />
     </div>
   );
 }
@@ -482,16 +495,14 @@ function CategoryForm({
 }) {
   const [state, formAction, pending] = useActionState(createCategory, undefined);
   const [deleteError, setDeleteError] = useState("");
+  const [catToDelete, setCatToDelete] = useState<Category | null>(null);
   const [deleting, startDelete] = useTransition();
   const router = useRouter();
 
-  const onDelete = (c: Category) => {
-    if (
-      !confirm(
-        `¿Eliminar la categoría "${c.name}"?\n\nLos productos que la usen no se borran: quedan "Sin categoría".`
-      )
-    )
-      return;
+  const confirmDelete = () => {
+    const c = catToDelete;
+    if (!c) return;
+    setCatToDelete(null);
     setDeleteError("");
     startDelete(async () => {
       const result = await deleteCategory(c.id);
@@ -517,7 +528,7 @@ function CategoryForm({
           >
             {c.name}
             <button
-              onClick={() => onDelete(c)}
+              onClick={() => setCatToDelete(c)}
               disabled={deleting}
               className="text-sky-400/60 hover:text-red-400 cursor-pointer disabled:opacity-40"
               title={`Eliminar "${c.name}"`}
@@ -533,6 +544,14 @@ function CategoryForm({
       </form>
       {state?.error && <p className="text-sm text-red-400 mt-2">{state.error}</p>}
       {deleteError && <p className="text-sm text-red-400 mt-2">{deleteError}</p>}
+
+      <ConfirmDialog
+        open={catToDelete !== null}
+        title={`¿Eliminar la categoría "${catToDelete?.name}"?`}
+        message='Los productos que la usen no se borran: quedan "Sin categoría".'
+        onConfirm={confirmDelete}
+        onCancel={() => setCatToDelete(null)}
+      />
     </Card>
   );
 }

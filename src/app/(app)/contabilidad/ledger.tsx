@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createLedgerEntry, deleteLedgerEntry } from "@/actions/ledger";
 import { formatCents } from "@/lib/money";
 import { Button, Input, Label, Select, Card, Th, Td } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 interface LedgerRow {
   id: number;
@@ -25,14 +26,14 @@ export function LedgerTable({ rows }: { rows: LedgerRow[] }) {
   const router = useRouter();
   const [, startDelete] = useTransition();
   const [error, setError] = useState("");
+  const [toDelete, setToDelete] = useState<LedgerRow | null>(null);
 
-  const onDelete = (row: LedgerRow) => {
-    if (
-      !confirm(
-        `¿Eliminar el movimiento "${row.name}" (${formatCents(row.amountCents)})?`
-      )
-    )
-      return;
+  const onDelete = (row: LedgerRow) => setToDelete(row);
+
+  const confirmDelete = () => {
+    const row = toDelete;
+    if (!row) return;
+    setToDelete(null);
     startDelete(async () => {
       const result = await deleteLedgerEntry(row.id);
       if (result.error) setError(result.error);
@@ -99,6 +100,18 @@ export function LedgerTable({ rows }: { rows: LedgerRow[] }) {
         </table>
       </div>
       {error && <p className="text-sm text-red-400 px-4 py-2">{error}</p>}
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        title="¿Eliminar este movimiento?"
+        message={
+          toDelete
+            ? `"${toDelete.name}" (${formatCents(toDelete.amountCents)}). El saldo se recalcula automáticamente.`
+            : ""
+        }
+        onConfirm={confirmDelete}
+        onCancel={() => setToDelete(null)}
+      />
     </Card>
   );
 }

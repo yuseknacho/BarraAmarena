@@ -3,19 +3,16 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { voidSale } from "@/actions/sales";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 export function VoidSaleButton({ saleId }: { saleId: number }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
 
-  const onClick = () => {
-    if (
-      !confirm(
-        "¿Anular esta venta? Se repone el stock de los productos. Esta acción no se puede deshacer."
-      )
-    )
-      return;
+  const onConfirm = () => {
+    setConfirming(false);
     startTransition(async () => {
       const result = await voidSale(saleId);
       if (result.error) setError(result.error);
@@ -26,13 +23,22 @@ export function VoidSaleButton({ saleId }: { saleId: number }) {
   return (
     <>
       <button
-        onClick={onClick}
+        onClick={() => setConfirming(true)}
         disabled={pending}
         className="text-sm text-red-400 hover:underline cursor-pointer disabled:opacity-50"
       >
         {pending ? "Anulando…" : "Anular"}
       </button>
       {error && <span className="text-xs text-red-400 block">{error}</span>}
+
+      <ConfirmDialog
+        open={confirming}
+        title="¿Anular esta venta?"
+        message="Se repone el stock de los productos vendidos. Esta acción no se puede deshacer."
+        confirmLabel="Sí, anular"
+        onConfirm={onConfirm}
+        onCancel={() => setConfirming(false)}
+      />
     </>
   );
 }
