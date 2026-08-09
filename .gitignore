@@ -42,3 +42,7 @@ next-env.d.ts
 
 # base de datos local
 data/
+
+# catálogos de datos del negocio
+productos.xls
+*.xlsx
