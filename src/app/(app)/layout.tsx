@@ -13,6 +13,7 @@ const barmanLinks = [{ href: "/canje", label: "Entregas" }];
 
 const superadminLinks = [
   { href: "/panel", label: "Panel de control" },
+  { href: "/contabilidad", label: "Contabilidad Barra" },
   { href: "/pos", label: "Vender" },
   { href: "/caja", label: "Caja" },
   { href: "/canje", label: "Entregas" },

@@ -295,6 +295,24 @@ export const stockMovements = sqliteTable(
   ]
 );
 
+// Libro de contabilidad manual de la barra (ingresos/egresos con saldo)
+export const ledgerEntries = sqliteTable(
+  "ledger_entries",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    date: text("date").notNull(), // YYYY-MM-DD
+    category: text("category").notNull(),
+    name: text("name").notNull(),
+    type: text("type", { enum: ["ingreso", "egreso"] }).notNull(),
+    amountCents: integer("amount_cents").notNull(),
+    createdByUserId: integer("created_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    createdAt: text("created_at").notNull().default(now),
+  },
+  (t) => [index("ledger_entries_date_idx").on(t.date)]
+);
+
 export const settings = sqliteTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
