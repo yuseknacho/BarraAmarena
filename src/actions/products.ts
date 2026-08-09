@@ -7,6 +7,8 @@ import {
   categories,
   stockMovements,
   productComponents,
+  saleItems,
+  purchaseItems,
 } from "@/db";
 import { eq, and, ne, sql } from "drizzle-orm";
 import { requireAdmin, requireUser } from "@/lib/auth";
@@ -342,6 +344,60 @@ export async function deleteCategory(id: number): Promise<ActionResult> {
     db.delete(categories).where(eq(categories.id, id)).run();
   });
   tx();
+
+  revalidatePath("/productos");
+  revalidatePath("/pos");
+  return { ok: true };
+}
+
+export async function deleteProduct(id: number): Promise<ActionResult> {
+  await requireAdmin();
+  const product = db.select().from(products).where(eq(products.id, id)).get();
+  if (!product) return { error: "Producto no encontrado." };
+
+  const ventas =
+    db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(saleItems)
+      .where(eq(saleItems.productId, id))
+      .get()?.n ?? 0;
+  if (ventas > 0) {
+    return {
+      error: `"${product.name}" tiene ${ventas} venta${ventas > 1 ? "s" : ""} registrada${ventas > 1 ? "s" : ""}: no se puede eliminar sin romper el historial. Desactivalo desde Editar para que no aparezca más.`,
+    };
+  }
+
+  const compras =
+    db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(purchaseItems)
+      .where(eq(purchaseItems.productId, id))
+      .get()?.n ?? 0;
+  if (compras > 0) {
+    return {
+      error: `"${product.name}" tiene compras registradas: no se puede eliminar sin romper el historial. Desactivalo desde Editar.`,
+    };
+  }
+
+  const enCombo = db
+    .select({ comboName: products.name })
+    .from(productComponents)
+    .innerJoin(products, eq(productComponents.productId, products.id))
+    .where(eq(productComponents.componentProductId, id))
+    .get();
+  if (enCombo) {
+    return {
+      error: `"${product.name}" forma parte del combo "${enCombo.comboName}": sacalo del combo antes de eliminarlo.`,
+    };
+  }
+
+  const tx = sqlite.transaction(() => {
+    db.delete(stockMovements).where(eq(stockMovements.productId, id)).run();
+    db.delete(productComponents).where(eq(productComponents.productId, id)).run();
+    db.delete(products).where(eq(products.id, id)).run();
+  });
+  tx();
+  deleteImage(product.image);
 
   revalidatePath("/productos");
   revalidatePath("/pos");

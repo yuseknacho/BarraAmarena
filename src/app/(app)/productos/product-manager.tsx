@@ -7,6 +7,7 @@ import {
   updateProduct,
   createCategory,
   deleteCategory,
+  deleteProduct,
 } from "@/actions/products";
 import type { Product, Category, ProductComponent } from "@/db/schema";
 import { formatCents, formatQty } from "@/lib/money";
@@ -37,9 +38,26 @@ export function ProductManager({
   const [creating, setCreating] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [search, setSearch] = useState(initialQuery);
+  const [deleteError, setDeleteError] = useState("");
+  const [, startDelete] = useTransition();
 
   const catName = (id: number | null) =>
     categories.find((c) => c.id === id)?.name ?? "—";
+
+  const onDeleteProduct = (p: Product) => {
+    if (
+      !confirm(
+        `⚠️ ¿Eliminar definitivamente "${p.name}"?\n\nSe borra el producto con su foto y su historial de stock. Esta acción NO se puede deshacer.`
+      )
+    )
+      return;
+    setDeleteError("");
+    startDelete(async () => {
+      const result = await deleteProduct(p.id);
+      if (result.error) setDeleteError(result.error);
+      else router.refresh();
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -85,6 +103,12 @@ export function ProductManager({
           }
           onDone={() => { setCreating(false); setEditing(null); }}
         />
+      )}
+
+      {deleteError && (
+        <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2">
+          {deleteError}
+        </p>
       )}
 
       <Card className="p-0 overflow-x-auto">
@@ -138,13 +162,20 @@ export function ProductManager({
                       {p.active ? "activo" : "inactivo"}
                     </Badge>
                   </Td>
-                  <Td className="text-right">
+                  <Td className="text-right whitespace-nowrap">
                     <Button
                       variant="ghost"
                       onClick={() => { setEditing(p); setCreating(false); }}
                     >
                       Editar
                     </Button>
+                    <button
+                      onClick={() => onDeleteProduct(p)}
+                      className="ml-1 px-2 py-1 rounded-md text-red-500 hover:bg-red-500/15 hover:text-red-400 cursor-pointer font-bold"
+                      title={`Eliminar "${p.name}" definitivamente`}
+                    >
+                      ✕
+                    </button>
                   </Td>
                 </tr>
               );
