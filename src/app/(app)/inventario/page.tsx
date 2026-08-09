@@ -35,6 +35,7 @@ export default async function InventarioPage() {
     .select({
       id: stockMovements.id,
       productName: products.name,
+      productDeleted: products.deletedAt,
       unit: products.unit,
       type: stockMovements.type,
       qtyDelta: stockMovements.qtyDelta,
@@ -99,7 +100,14 @@ export default async function InventarioPage() {
             {movements.map((m) => (
               <tr key={m.id}>
                 <Td className="whitespace-nowrap">{formatDate(m.createdAt)}</Td>
-                <Td>{m.productName}</Td>
+                <Td>
+                  {m.productName}
+                  {m.productDeleted && (
+                    <span className="text-white/40 italic ml-1">
+                      (producto eliminado)
+                    </span>
+                  )}
+                </Td>
                 <Td>
                   <Badge
                     color={

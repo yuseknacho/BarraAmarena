@@ -51,6 +51,9 @@ export const products = sqliteTable(
     image: text("image"),
     // Combo: producto compuesto por otros productos (descuenta el stock de ellos)
     isCombo: integer("is_combo", { mode: "boolean" }).notNull().default(false),
+    // Borrado lógico: sale de todas las listas pero el historial contable
+    // lo sigue mostrando como "(producto eliminado)"
+    deletedAt: text("deleted_at"),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: text("created_at").notNull().default(now),
     updatedAt: text("updated_at").notNull().default(now),

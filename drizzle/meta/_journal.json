@@ -36,6 +36,13 @@
       "when": 1786291484873,
       "tag": "0004_ledger",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786294428542,
+      "tag": "0005_soft-delete",
+      "breakpoints": true
     }
   ]
 }

@@ -39,6 +39,7 @@ export function ProductManager({
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [search, setSearch] = useState(initialQuery);
   const [deleteError, setDeleteError] = useState("");
+  const [deleteInfo, setDeleteInfo] = useState("");
   const [, startDelete] = useTransition();
 
   const catName = (id: number | null) =>
@@ -47,15 +48,19 @@ export function ProductManager({
   const onDeleteProduct = (p: Product) => {
     if (
       !confirm(
-        `⚠️ ¿Eliminar definitivamente "${p.name}"?\n\nSe borra el producto con su foto y su historial de stock. Esta acción NO se puede deshacer.`
+        `⚠️ ¿Eliminar "${p.name}"?\n\nDesaparece de la lista y de la pantalla de venta. Si tiene ventas o compras registradas, el historial contable se conserva y lo mostrará como "(producto eliminado)".\n\nEsta acción NO se puede deshacer.`
       )
     )
       return;
     setDeleteError("");
+    setDeleteInfo("");
     startDelete(async () => {
       const result = await deleteProduct(p.id);
       if (result.error) setDeleteError(result.error);
-      else router.refresh();
+      else {
+        if (result.info) setDeleteInfo(result.info);
+        router.refresh();
+      }
     });
   };
 
@@ -108,6 +113,11 @@ export function ProductManager({
       {deleteError && (
         <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2">
           {deleteError}
+        </p>
+      )}
+      {deleteInfo && (
+        <p className="text-sm text-brand-light bg-brand/10 border border-brand/30 rounded-md px-3 py-2">
+          {deleteInfo}
         </p>
       )}
 

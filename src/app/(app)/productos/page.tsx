@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { db, products, categories, productComponents } from "@/db";
-import { like, or, desc } from "drizzle-orm";
+import { like, or, and, desc, isNull } from "drizzle-orm";
 import { PageTitle, PageHelp } from "@/components/ui";
 import { ProductManager } from "./product-manager";
 
@@ -19,11 +19,23 @@ export default async function ProductosPage({
         .select()
         .from(products)
         .where(
-          or(like(products.name, `%${query}%`), like(products.barcode, `%${query}%`))
+          and(
+            isNull(products.deletedAt),
+            or(
+              like(products.name, `%${query}%`),
+              like(products.barcode, `%${query}%`)
+            )
+          )
         )
         .orderBy(products.name)
         .all()
-    : db.select().from(products).orderBy(desc(products.createdAt)).limit(200).all();
+    : db
+        .select()
+        .from(products)
+        .where(isNull(products.deletedAt))
+        .orderBy(desc(products.createdAt))
+        .limit(200)
+        .all();
 
   const allComponents = db.select().from(productComponents).all();
 

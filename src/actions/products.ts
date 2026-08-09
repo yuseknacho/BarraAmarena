@@ -350,35 +350,14 @@ export async function deleteCategory(id: number): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function deleteProduct(id: number): Promise<ActionResult> {
+export type DeleteResult = { error?: string; ok?: boolean; info?: string };
+
+export async function deleteProduct(id: number): Promise<DeleteResult> {
   await requireAdmin();
   const product = db.select().from(products).where(eq(products.id, id)).get();
-  if (!product) return { error: "Producto no encontrado." };
+  if (!product || product.deletedAt) return { error: "Producto no encontrado." };
 
-  const ventas =
-    db
-      .select({ n: sql<number>`COUNT(*)` })
-      .from(saleItems)
-      .where(eq(saleItems.productId, id))
-      .get()?.n ?? 0;
-  if (ventas > 0) {
-    return {
-      error: `"${product.name}" tiene ${ventas} venta${ventas > 1 ? "s" : ""} registrada${ventas > 1 ? "s" : ""}: no se puede eliminar sin romper el historial. Desactivalo desde Editar para que no aparezca más.`,
-    };
-  }
-
-  const compras =
-    db
-      .select({ n: sql<number>`COUNT(*)` })
-      .from(purchaseItems)
-      .where(eq(purchaseItems.productId, id))
-      .get()?.n ?? 0;
-  if (compras > 0) {
-    return {
-      error: `"${product.name}" tiene compras registradas: no se puede eliminar sin romper el historial. Desactivalo desde Editar.`,
-    };
-  }
-
+  // Si está dentro de un combo vigente, primero hay que sacarlo del combo
   const enCombo = db
     .select({ comboName: products.name })
     .from(productComponents)
@@ -387,10 +366,56 @@ export async function deleteProduct(id: number): Promise<ActionResult> {
     .get();
   if (enCombo) {
     return {
-      error: `"${product.name}" forma parte del combo "${enCombo.comboName}": sacalo del combo antes de eliminarlo.`,
+      error: `"${product.name}" forma parte del combo "${enCombo.comboName}": eliminá el combo o sacalo de él primero.`,
     };
   }
 
+  const ventas =
+    db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(saleItems)
+      .where(eq(saleItems.productId, id))
+      .get()?.n ?? 0;
+  const compras =
+    db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(purchaseItems)
+      .where(eq(purchaseItems.productId, id))
+      .get()?.n ?? 0;
+
+  if (ventas > 0 || compras > 0) {
+    // Tiene historial contable: borrado lógico. Sale de todas las listas,
+    // pero ventas, compras y movimientos quedan intactos y lo muestran
+    // como "(producto eliminado)".
+    const tx = sqlite.transaction(() => {
+      db.update(products)
+        .set({
+          deletedAt: new Date().toISOString(),
+          active: false,
+          barcode: null, // libera el código de barras para futuros productos
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(products.id, id))
+        .run();
+      // Si era un combo, su receta ya no hace falta (las ventas viejas
+      // tienen precio y costo congelados)
+      db.delete(productComponents)
+        .where(eq(productComponents.productId, id))
+        .run();
+    });
+    tx();
+    deleteImage(product.image);
+    db.update(products).set({ image: null }).where(eq(products.id, id)).run();
+
+    revalidatePath("/productos");
+    revalidatePath("/pos");
+    return {
+      ok: true,
+      info: `"${product.name}" se eliminó de la lista. Como tenía movimientos registrados, en el historial va a figurar como "(producto eliminado)".`,
+    };
+  }
+
+  // Sin historial: se borra de verdad
   const tx = sqlite.transaction(() => {
     db.delete(stockMovements).where(eq(stockMovements.productId, id)).run();
     db.delete(productComponents).where(eq(productComponents.productId, id)).run();
