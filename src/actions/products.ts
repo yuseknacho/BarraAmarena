@@ -429,6 +429,26 @@ export async function deleteProduct(id: number): Promise<DeleteResult> {
   return { ok: true };
 }
 
+// Guarda el orden de los cuadrados en la pantalla de venta.
+export async function saveProductOrder(ids: number[]): Promise<ActionResult> {
+  await requireAdmin();
+  if (!Array.isArray(ids) || ids.some((i) => !Number.isInteger(i)))
+    return { error: "Orden inválido." };
+
+  const tx = sqlite.transaction(() => {
+    ids.forEach((productId, index) => {
+      db.update(products)
+        .set({ sortOrder: index })
+        .where(eq(products.id, productId))
+        .run();
+    });
+  });
+  tx();
+
+  revalidatePath("/pos");
+  return { ok: true };
+}
+
 export async function adjustStock(
   _prev: ActionResult | undefined,
   formData: FormData

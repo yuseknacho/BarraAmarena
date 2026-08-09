@@ -54,6 +54,8 @@ export const products = sqliteTable(
     // Borrado lógico: sale de todas las listas pero el historial contable
     // lo sigue mostrando como "(producto eliminado)"
     deletedAt: text("deleted_at"),
+    // Posición del cuadrado en la pantalla de venta (null = al final)
+    sortOrder: integer("sort_order"),
     active: integer("active", { mode: "boolean" }).notNull().default(true),
     createdAt: text("created_at").notNull().default(now),
     updatedAt: text("updated_at").notNull().default(now),

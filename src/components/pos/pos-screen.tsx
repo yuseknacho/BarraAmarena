@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { createSale } from "@/actions/sales";
+import { saveProductOrder } from "@/actions/products";
 import { formatCents, pesosToCents } from "@/lib/money";
 import { Button, Select, Card } from "@/components/ui";
 import { PaymentModal } from "./payment-modal";
@@ -24,12 +26,14 @@ interface CartLine extends PosProduct {
 export function PosScreen({
   terminalName,
   sellerName,
+  isAdmin,
   customers,
   products,
   categories,
 }: {
   terminalName: string;
   sellerName: string;
+  isAdmin: boolean;
   customers: { id: number; name: string }[];
   products: PosProduct[];
   categories: { id: number; name: string }[];
@@ -44,6 +48,40 @@ export function PosScreen({
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Modo "Ordenar": arrastrar los cuadrados para acomodarlos (solo Super Admin)
+  const router = useRouter();
+  const [ordering, setOrdering] = useState(false);
+  const [orderList, setOrderList] = useState<PosProduct[]>(products);
+  const [savingOrder, startSaveOrder] = useTransition();
+  const dragId = useRef<number | null>(null);
+  useEffect(() => {
+    if (!ordering) setOrderList(products);
+  }, [products, ordering]);
+
+  const moveProduct = (fromId: number, toId: number) => {
+    if (fromId === toId) return;
+    setOrderList((prev) => {
+      const list = [...prev];
+      const from = list.findIndex((p) => p.id === fromId);
+      const to = list.findIndex((p) => p.id === toId);
+      if (from < 0 || to < 0) return prev;
+      const [item] = list.splice(from, 1);
+      list.splice(to, 0, item);
+      return list;
+    });
+  };
+
+  const saveOrder = () => {
+    startSaveOrder(async () => {
+      const result = await saveProductOrder(orderList.map((p) => p.id));
+      if (result.error) setError(result.error);
+      else {
+        setOrdering(false);
+        router.refresh();
+      }
+    });
+  };
+
   const subtotalCents = cart.reduce(
     (a, l) => a + Math.round(l.priceCents * l.qty),
     0
@@ -55,7 +93,8 @@ export function PosScreen({
 
   const visibleProducts = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return products.filter((p) => {
+    const source = ordering ? orderList : products;
+    return source.filter((p) => {
       if (categoryId !== "todos" && p.categoryId !== categoryId) return false;
       if (!q) return true;
       return (
@@ -63,7 +102,7 @@ export function PosScreen({
         (p.barcode ?? "").startsWith(q)
       );
     });
-  }, [products, query, categoryId]);
+  }, [products, orderList, ordering, query, categoryId]);
 
   const addProduct = useCallback((p: PosProduct) => {
     setCart((prev) => {
@@ -332,23 +371,57 @@ export function PosScreen({
           autoFocus
         />
 
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          <CategoryButton
-            active={categoryId === "todos"}
-            onClick={() => setCategoryId("todos")}
-          >
-            Todos
-          </CategoryButton>
-          {categories.map((c) => (
+        <div className="flex gap-2 items-center">
+          <div className="flex gap-2 overflow-x-auto pb-1 flex-1 min-w-0">
             <CategoryButton
-              key={c.id}
-              active={categoryId === c.id}
-              onClick={() => setCategoryId(c.id)}
+              active={categoryId === "todos"}
+              onClick={() => setCategoryId("todos")}
             >
-              {c.name}
+              Todos
             </CategoryButton>
-          ))}
+            {categories.map((c) => (
+              <CategoryButton
+                key={c.id}
+                active={categoryId === c.id}
+                onClick={() => setCategoryId(c.id)}
+              >
+                {c.name}
+              </CategoryButton>
+            ))}
+          </div>
+          {isAdmin && (
+            <div className="flex gap-2 shrink-0">
+              {!ordering ? (
+                <Button variant="secondary" onClick={() => setOrdering(true)}>
+                  ↕ Ordenar
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setOrdering(false);
+                      setOrderList(products);
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button onClick={saveOrder} disabled={savingOrder}>
+                    {savingOrder ? "Guardando…" : "Guardar orden"}
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
         </div>
+
+        {ordering && (
+          <p className="text-sm text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 rounded-md px-3 py-2">
+            Modo ordenar: arrastrá los cuadrados a la posición que quieras y
+            tocá &quot;Guardar orden&quot;. Mientras tanto no se agregan productos al
+            pedido.
+          </p>
+        )}
 
         {error && (
           <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2">
@@ -367,10 +440,33 @@ export function PosScreen({
                 <button
                   key={p.id}
                   onClick={() => {
+                    if (ordering) return;
                     addProduct(p);
                     focusInput();
                   }}
-                  className="group relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-neutral-900 text-left cursor-pointer hover:border-brand hover:ring-2 hover:ring-brand/50 active:scale-95 transition"
+                  draggable={ordering}
+                  onDragStart={() => {
+                    dragId.current = p.id;
+                  }}
+                  onDragEnter={() => {
+                    if (ordering && dragId.current !== null)
+                      moveProduct(dragId.current, p.id);
+                  }}
+                  onDragOver={(e) => {
+                    if (ordering) e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    if (ordering) e.preventDefault();
+                    dragId.current = null;
+                  }}
+                  onDragEnd={() => {
+                    dragId.current = null;
+                  }}
+                  className={`group relative aspect-square rounded-lg overflow-hidden border text-left transition ${
+                    ordering
+                      ? "border-yellow-500/50 ring-1 ring-yellow-500/30 cursor-move"
+                      : "border-white/10 bg-neutral-900 cursor-pointer hover:border-brand hover:ring-2 hover:ring-brand/50 active:scale-95"
+                  }`}
                 >
                   {p.image ? (
                     // eslint-disable-next-line @next/next/no-img-element

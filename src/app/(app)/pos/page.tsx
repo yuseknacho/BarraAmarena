@@ -48,11 +48,20 @@ export default async function PosPage() {
       image: products.image,
       categoryId: products.categoryId,
       isCombo: products.isCombo,
+      sortOrder: products.sortOrder,
     })
     .from(products)
     .where(eq(products.active, true))
     .orderBy(products.name)
     .all();
+
+  // Orden manual definido por el Super Admin (los sin posición van al final)
+  productList.sort(
+    (a, b) =>
+      (a.sortOrder ?? Number.MAX_SAFE_INTEGER) -
+        (b.sortOrder ?? Number.MAX_SAFE_INTEGER) ||
+      a.name.localeCompare(b.name)
+  );
 
   // Stock efectivo de los combos: cuántas unidades alcanzan los componentes
   const allComponents = db
@@ -86,6 +95,7 @@ export default async function PosPage() {
     <PosScreen
       terminalName={terminal.name}
       sellerName={user.fullName}
+      isAdmin={user.role === "superadmin"}
       customers={customerList}
       products={productList}
       categories={categoryList}
