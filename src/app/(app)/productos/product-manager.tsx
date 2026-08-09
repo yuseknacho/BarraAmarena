@@ -445,7 +445,12 @@ function CategoryForm({
   const router = useRouter();
 
   const onDelete = (c: Category) => {
-    if (!confirm(`¿Eliminar la categoría "${c.name}"?`)) return;
+    if (
+      !confirm(
+        `¿Eliminar la categoría "${c.name}"?\n\nLos productos que la usen no se borran: quedan "Sin categoría".`
+      )
+    )
+      return;
     setDeleteError("");
     startDelete(async () => {
       const result = await deleteCategory(c.id);

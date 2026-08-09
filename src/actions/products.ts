@@ -333,19 +333,16 @@ export async function deleteCategory(id: number): Promise<ActionResult> {
     .get();
   if (!category) return { error: "Categoría no encontrada." };
 
-  const used =
-    db
-      .select({ n: sql<number>`COUNT(*)` })
-      .from(products)
+  // Los productos que la usaban quedan "Sin categoría" (no se borra ningún producto)
+  const tx = sqlite.transaction(() => {
+    db.update(products)
+      .set({ categoryId: null })
       .where(eq(products.categoryId, id))
-      .get()?.n ?? 0;
-  if (used > 0) {
-    return {
-      error: `No se puede eliminar "${category.name}": ${used} producto${used > 1 ? "s la usan" : " la usa"}. Cambiales la categoría primero.`,
-    };
-  }
+      .run();
+    db.delete(categories).where(eq(categories.id, id)).run();
+  });
+  tx();
 
-  db.delete(categories).where(eq(categories.id, id)).run();
   revalidatePath("/productos");
   revalidatePath("/pos");
   return { ok: true };
