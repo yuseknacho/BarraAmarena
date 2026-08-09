@@ -1,7 +1,17 @@
 "use server";
 
-import { db, users } from "@/db";
-import { eq } from "drizzle-orm";
+import {
+  db,
+  sqlite,
+  users,
+  sales,
+  cashSessions,
+  cashMovements,
+  stockMovements,
+  purchases,
+  ledgerEntries,
+} from "@/db";
+import { eq, and, ne, isNull, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
@@ -79,6 +89,83 @@ export async function updateUser(
     })
     .where(eq(users.id, id))
     .run();
+  revalidatePath("/admin/usuarios");
+  return { ok: true };
+}
+
+export type DeleteUserResult = { error?: string; ok?: boolean; info?: string };
+
+// Elimina un usuario. Si tiene actividad registrada (ventas, cajas,
+// movimientos), se hace borrado lógico: sale de la lista pero el
+// historial conserva su nombre.
+export async function deleteUser(id: number): Promise<DeleteUserResult> {
+  const actor = await requireAdmin();
+
+  const user = db.select().from(users).where(eq(users.id, id)).get();
+  if (!user || user.deletedAt) return { error: "Usuario no encontrado." };
+
+  if (id === actor.userId)
+    return { error: "No podés eliminarte a vos mismo." };
+
+  if (user.role === "superadmin") {
+    const otros = db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(users)
+      .where(
+        and(
+          eq(users.role, "superadmin"),
+          eq(users.active, true),
+          isNull(users.deletedAt),
+          ne(users.id, id)
+        )
+      )
+      .get()!.n;
+    if (otros === 0)
+      return {
+        error:
+          "Es el único Super Admin activo: si lo eliminás, nadie puede administrar el sistema.",
+      };
+  }
+
+  // ¿Tiene actividad registrada en el sistema?
+  const refs =
+    db.select({ n: sql<number>`COUNT(*)` }).from(sales).where(
+      or(
+        eq(sales.userId, id),
+        eq(sales.voidedByUserId, id),
+        eq(sales.redeemedByUserId, id)
+      )
+    ).get()!.n +
+    db.select({ n: sql<number>`COUNT(*)` }).from(cashSessions).where(
+      or(eq(cashSessions.openedByUserId, id), eq(cashSessions.closedByUserId, id))
+    ).get()!.n +
+    db.select({ n: sql<number>`COUNT(*)` }).from(cashMovements)
+      .where(eq(cashMovements.userId, id)).get()!.n +
+    db.select({ n: sql<number>`COUNT(*)` }).from(stockMovements)
+      .where(eq(stockMovements.userId, id)).get()!.n +
+    db.select({ n: sql<number>`COUNT(*)` }).from(purchases)
+      .where(eq(purchases.userId, id)).get()!.n +
+    db.select({ n: sql<number>`COUNT(*)` }).from(ledgerEntries)
+      .where(eq(ledgerEntries.createdByUserId, id)).get()!.n;
+
+  if (refs > 0) {
+    // Borrado lógico: libera el nombre de usuario para reutilizarlo
+    db.update(users)
+      .set({
+        deletedAt: new Date().toISOString(),
+        active: false,
+        username: `${user.username}.eliminado.${id}`,
+      })
+      .where(eq(users.id, id))
+      .run();
+    revalidatePath("/admin/usuarios");
+    return {
+      ok: true,
+      info: `"${user.fullName}" se eliminó. Como tenía actividad registrada, su nombre se conserva en el historial de ventas y cajas.`,
+    };
+  }
+
+  db.delete(users).where(eq(users.id, id)).run();
   revalidatePath("/admin/usuarios");
   return { ok: true };
 }

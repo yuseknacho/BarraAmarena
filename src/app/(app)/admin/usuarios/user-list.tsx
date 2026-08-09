@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { createUser, updateUser } from "@/actions/users";
+import { useActionState, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { createUser, updateUser, deleteUser } from "@/actions/users";
 import { Button, Input, Label, Select, Card, Th, Td, Badge } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 interface UserRow {
   id: number;
@@ -13,8 +15,29 @@ interface UserRow {
 }
 
 export function UserList({ users }: { users: UserRow[] }) {
+  const router = useRouter();
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [creating, setCreating] = useState(false);
+  const [toDelete, setToDelete] = useState<UserRow | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteInfo, setDeleteInfo] = useState("");
+  const [, startDelete] = useTransition();
+
+  const confirmDelete = () => {
+    const u = toDelete;
+    if (!u) return;
+    setToDelete(null);
+    setDeleteError("");
+    setDeleteInfo("");
+    startDelete(async () => {
+      const result = await deleteUser(u.id);
+      if (result.error) setDeleteError(result.error);
+      else {
+        if (result.info) setDeleteInfo(result.info);
+        router.refresh();
+      }
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -27,6 +50,17 @@ export function UserList({ users }: { users: UserRow[] }) {
       {creating && <CreateForm onDone={() => setCreating(false)} />}
       {editing && (
         <EditForm user={editing} onDone={() => setEditing(null)} />
+      )}
+
+      {deleteError && (
+        <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded-md px-3 py-2">
+          {deleteError}
+        </p>
+      )}
+      {deleteInfo && (
+        <p className="text-sm text-brand-light bg-brand/10 border border-brand/30 rounded-md px-3 py-2">
+          {deleteInfo}
+        </p>
       )}
 
       <Card className="p-0 overflow-x-auto">
@@ -55,19 +89,36 @@ export function UserList({ users }: { users: UserRow[] }) {
                     {u.active ? "activo" : "inactivo"}
                   </Badge>
                 </Td>
-                <Td className="text-right">
+                <Td className="text-right whitespace-nowrap">
                   <Button
                     variant="ghost"
                     onClick={() => { setEditing(u); setCreating(false); }}
                   >
                     Editar
                   </Button>
+                  <button
+                    onClick={() => { setDeleteError(""); setDeleteInfo(""); setToDelete(u); }}
+                    className="ml-1 px-2 py-1 rounded-md text-red-500 hover:bg-red-500/15 hover:text-red-400 cursor-pointer font-bold"
+                    title={`Eliminar a "${u.fullName}"`}
+                  >
+                    ✕
+                  </button>
                 </Td>
               </tr>
             ))}
           </tbody>
         </table>
       </Card>
+
+      <ConfirmDialog
+        open={toDelete !== null}
+        title={`¿Eliminar al usuario "${toDelete?.fullName}"?`}
+        message={
+          "Ya no va a poder entrar al sistema. Si tiene ventas o cajas registradas, su nombre se conserva en el historial.\n\nEsta acción no se puede deshacer."
+        }
+        onConfirm={confirmDelete}
+        onCancel={() => setToDelete(null)}
+      />
     </div>
   );
 }

@@ -19,6 +19,8 @@ export const users = sqliteTable("users", {
     .notNull()
     .default("cajero"),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
+  // Borrado lógico: sale de la lista pero el historial conserva su nombre
+  deletedAt: text("deleted_at"),
   createdAt: text("created_at").notNull().default(now),
 });
 
