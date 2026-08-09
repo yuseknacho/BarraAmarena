@@ -328,7 +328,7 @@ export function PosScreen({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onSearchKeyDown}
           placeholder="Escaneá un código de barras o buscá por nombre… (Enter agrega)"
-          className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-3 text-lg text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand"
+          className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-base text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-brand"
           autoFocus
         />
 
@@ -362,7 +362,7 @@ export function PosScreen({
               No hay productos en esta vista.
             </p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-9 gap-1.5">
               {visibleProducts.map((p) => (
                 <button
                   key={p.id}
@@ -381,22 +381,22 @@ export function PosScreen({
                       loading="lazy"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center p-2">
-                      <span className="text-center text-sm font-semibold text-white/60 leading-tight">
+                    <div className="absolute inset-0 flex items-center justify-center p-1.5">
+                      <span className="text-center text-xs font-semibold text-white/60 leading-tight">
                         {p.name}
                       </span>
                     </div>
                   )}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pt-6 pb-1.5 px-2">
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pt-4 pb-1 px-1.5">
                     {p.image && (
-                      <p className="text-xs font-medium leading-tight truncate">
+                      <p className="text-[10px] font-medium leading-tight truncate">
                         {p.name}
                       </p>
                     )}
-                    <p className="text-sm font-bold text-brand-light">
+                    <p className="text-xs font-bold text-brand-light leading-tight">
                       {formatCents(p.priceCents)}
                       {p.stock <= 0 && (
-                        <span className="text-red-400 text-xs font-normal ml-1.5">
+                        <span className="text-red-400 text-[10px] font-normal ml-1">
                           sin stock
                         </span>
                       )}
@@ -435,7 +435,7 @@ function CategoryButton({
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-md text-sm font-semibold whitespace-nowrap cursor-pointer transition ${
+      className={`px-3 py-1.5 rounded-md text-sm font-semibold whitespace-nowrap cursor-pointer transition ${
         active
           ? "bg-brand text-black"
           : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
