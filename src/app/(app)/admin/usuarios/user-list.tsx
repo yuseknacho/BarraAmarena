@@ -125,7 +125,31 @@ export function UserList({ users }: { users: UserRow[] }) {
 
 function CreateForm({ onDone }: { onDone: () => void }) {
   const [state, formAction, pending] = useActionState(createUser, undefined);
-  if (state?.ok) onDone();
+  const [showPass, setShowPass] = useState(true);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  // Usuario creado: mostrar las credenciales en claro para anotarlas
+  if (state?.ok) {
+    return (
+      <Card className="border-brand/40 bg-brand/5">
+        <h2 className="font-semibold mb-2">✅ Usuario creado</h2>
+        <div className="rounded-lg bg-black/40 border border-white/10 p-4 mb-3 font-mono text-lg">
+          <p>
+            Usuario: <span className="font-bold text-brand-light">{username}</span>
+          </p>
+          <p>
+            Contraseña: <span className="font-bold text-brand-light">{password}</span>
+          </p>
+        </div>
+        <p className="text-sm text-white/50 mb-3">
+          Anotá estos datos y pasáselos al empleado. La contraseña no se vuelve
+          a mostrar (si se olvida, se le asigna una nueva desde Editar).
+        </p>
+        <Button onClick={onDone}>Listo</Button>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -133,7 +157,13 @@ function CreateForm({ onDone }: { onDone: () => void }) {
       <form action={formAction} className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label>Usuario</Label>
-          <Input name="username" required autoFocus />
+          <Input
+            name="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            autoFocus
+          />
         </div>
         <div>
           <Label>Nombre completo</Label>
@@ -141,7 +171,23 @@ function CreateForm({ onDone }: { onDone: () => void }) {
         </div>
         <div>
           <Label>Contraseña</Label>
-          <Input name="password" type="password" required />
+          <div className="flex gap-2">
+            <Input
+              name="password"
+              type={showPass ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowPass((v) => !v)}
+              title={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPass ? "🙈" : "👁"}
+            </Button>
+          </div>
         </div>
         <div>
           <Label>Rol</Label>
@@ -167,6 +213,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
 
 function EditForm({ user, onDone }: { user: UserRow; onDone: () => void }) {
   const [state, formAction, pending] = useActionState(updateUser, undefined);
+  const [showPass, setShowPass] = useState(true);
   if (state?.ok) onDone();
 
   return (
@@ -188,7 +235,17 @@ function EditForm({ user, onDone }: { user: UserRow; onDone: () => void }) {
         </div>
         <div>
           <Label>Nueva contraseña (vacío = no cambiar)</Label>
-          <Input name="password" type="password" />
+          <div className="flex gap-2">
+            <Input name="password" type={showPass ? "text" : "password"} />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowPass((v) => !v)}
+              title={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPass ? "🙈" : "👁"}
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-2 pt-6">
           <input
