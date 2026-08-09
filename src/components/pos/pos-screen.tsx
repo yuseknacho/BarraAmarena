@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createSale } from "@/actions/sales";
 import { saveProductOrder } from "@/actions/products";
 import { formatCents, pesosToCents } from "@/lib/money";
-import { Button, Select, Card } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PaymentModal } from "./payment-modal";
 
@@ -28,14 +28,12 @@ export function PosScreen({
   terminalName,
   sellerName,
   isAdmin,
-  customers,
   products,
   categories,
 }: {
   terminalName: string;
   sellerName: string;
   isAdmin: boolean;
-  customers: { id: number; name: string }[];
   products: PosProduct[];
   categories: { id: number; name: string }[];
 }) {
@@ -43,7 +41,6 @@ export function PosScreen({
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<number | "todos">("todos");
   const [discount, setDiscount] = useState("");
-  const [customerId, setCustomerId] = useState<number | "">("");
   const [paying, setPaying] = useState(false);
   const [lastSale, setLastSale] = useState<{ saleId: number; docNumber: number } | null>(null);
   const [error, setError] = useState("");
@@ -177,7 +174,7 @@ export function PosScreen({
       items: cart.map((l) => ({ productId: l.id, qty: l.qty, discountCents: 0 })),
       discountCents,
       payments,
-      customerId: customerId === "" ? null : customerId,
+      customerId: null,
     });
     if (!result.ok) {
       setError(result.error);
@@ -192,7 +189,6 @@ export function PosScreen({
   const newSale = () => {
     setCart([]);
     setDiscount("");
-    setCustomerId("");
     setLastSale(null);
     setError("");
     focusInput();
@@ -326,19 +322,6 @@ export function PosScreen({
                 {formatCents(totalCents)}
               </span>
             </div>
-            <Select
-              value={customerId}
-              onChange={(e) =>
-                setCustomerId(e.target.value === "" ? "" : Number(e.target.value))
-              }
-            >
-              <option value="">Consumidor final</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
             <div className="grid grid-cols-2 gap-2 pt-1">
               <Button
                 variant="secondary"

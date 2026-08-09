@@ -20,8 +20,6 @@ const superadminLinks = [
   { href: "/productos", label: "Productos" },
   { href: "/inventario", label: "Inventario" },
   { href: "/compras", label: "Compras" },
-  { href: "/proveedores", label: "Proveedores" },
-  { href: "/clientes", label: "Clientes" },
   { href: "/reportes", label: "Reportes" },
   { href: "/admin", label: "Administración" },
 ];

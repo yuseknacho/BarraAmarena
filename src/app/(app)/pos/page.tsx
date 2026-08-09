@@ -1,7 +1,7 @@
 import { requireSeller } from "@/lib/auth";
 import { getTerminal } from "@/lib/terminal";
 import { getOpenSession } from "@/lib/cash";
-import { db, customers, products, categories, productComponents } from "@/db";
+import { db, products, categories, productComponents } from "@/db";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -29,13 +29,6 @@ export default async function PosPage() {
       </div>
     );
   }
-
-  const customerList = db
-    .select({ id: customers.id, name: customers.name })
-    .from(customers)
-    .where(eq(customers.active, true))
-    .orderBy(customers.name)
-    .all();
 
   const productList = db
     .select({
@@ -96,7 +89,6 @@ export default async function PosPage() {
       terminalName={terminal.name}
       sellerName={user.fullName}
       isAdmin={user.role === "superadmin"}
-      customers={customerList}
       products={productList}
       categories={categoryList}
     />
