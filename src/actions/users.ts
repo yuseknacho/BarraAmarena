@@ -13,7 +13,7 @@ import {
 } from "@/db";
 import { eq, and, ne, isNull, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -44,7 +44,7 @@ export async function createUser(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireAdmin();
+  await requireSuperAdmin();
   const parsed = userSchema.safeParse({
     username: formData.get("username"),
     fullName: formData.get("fullName"),
@@ -68,7 +68,8 @@ export async function createUser(
       username: parsed.data.username,
       fullName: parsed.data.fullName,
       email,
-      role: "superadmin",
+      // Los usuarios creados son siempre Administradores; el Super Admin es único.
+      role: "admin",
       passwordHash: bcrypt.hashSync(password, 10),
     })
     .run();
@@ -80,7 +81,7 @@ export async function updateUser(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requireSuperAdmin();
   const id = Number(formData.get("id"));
   const user = db.select().from(users).where(eq(users.id, id)).get();
   if (!user) return { error: "Usuario no encontrado." };
@@ -117,7 +118,7 @@ export type DeleteUserResult = { error?: string; ok?: boolean; info?: string };
 // movimientos), se hace borrado lógico: sale de la lista pero el
 // historial conserva su nombre.
 export async function deleteUser(id: number): Promise<DeleteUserResult> {
-  const actor = await requireAdmin();
+  const actor = await requireSuperAdmin();
 
   const user = db.select().from(users).where(eq(users.id, id)).get();
   if (!user || user.deletedAt) return { error: "Usuario no encontrado." };

@@ -12,9 +12,15 @@ interface UserRow {
   fullName: string;
   active: boolean;
   email: string | null;
+  role: "superadmin" | "admin";
 }
 
-export function UserList({ users }: { users: UserRow[] }) {
+const ROLES = {
+  superadmin: "Super Admin",
+  admin: "Administrador",
+} as const;
+
+export function UserList({ users, meId }: { users: UserRow[]; meId: number }) {
   const router = useRouter();
   const [editing, setEditing] = useState<UserRow | null>(null);
   const [creating, setCreating] = useState(false);
@@ -43,7 +49,7 @@ export function UserList({ users }: { users: UserRow[] }) {
     <div className="space-y-4">
       <div>
         <Button onClick={() => { setCreating(true); setEditing(null); }}>
-          + Nuevo usuario
+          + Nuevo administrador
         </Button>
       </div>
 
@@ -70,6 +76,7 @@ export function UserList({ users }: { users: UserRow[] }) {
               <Th>Usuario</Th>
               <Th>Nombre</Th>
               <Th>Email</Th>
+              <Th>Rol</Th>
               <Th>Estado</Th>
               <Th></Th>
             </tr>
@@ -80,6 +87,11 @@ export function UserList({ users }: { users: UserRow[] }) {
                 <Td className="font-medium">{u.username}</Td>
                 <Td>{u.fullName}</Td>
                 <Td className="text-white/60">{u.email ?? "—"}</Td>
+                <Td>
+                  <Badge color={u.role === "superadmin" ? "green" : "gray"}>
+                    {ROLES[u.role]}
+                  </Badge>
+                </Td>
                 <Td>
                   <Badge color={u.active ? "green" : "red"}>
                     {u.active ? "activo" : "inactivo"}
@@ -92,6 +104,7 @@ export function UserList({ users }: { users: UserRow[] }) {
                   >
                     Editar
                   </Button>
+                  {u.id !== meId && (
                   <button
                     onClick={() => { setDeleteError(""); setDeleteInfo(""); setToDelete(u); }}
                     className="ml-1 px-2 py-1 rounded-md text-red-500 hover:bg-red-500/15 hover:text-red-400 cursor-pointer font-bold"
@@ -99,6 +112,7 @@ export function UserList({ users }: { users: UserRow[] }) {
                   >
                     ✕
                   </button>
+                  )}
                 </Td>
               </tr>
             ))}
@@ -110,7 +124,7 @@ export function UserList({ users }: { users: UserRow[] }) {
         open={toDelete !== null}
         title={`¿Eliminar al usuario "${toDelete?.fullName}"?`}
         message={
-          "Ya no va a poder entrar al sistema. Si tiene ventas o cajas registradas, su nombre se conserva en el historial.\n\nEsta acción no se puede deshacer."
+          "Ya no va a poder entrar al sistema. Si tiene movimientos cargados, su nombre se conserva en el historial.\n\nEsta acción no se puede deshacer."
         }
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}
@@ -129,7 +143,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
   if (state?.ok) {
     return (
       <Card className="border-brand/40 bg-brand/5">
-        <h2 className="font-semibold mb-2">✅ Usuario creado</h2>
+        <h2 className="font-semibold mb-2">✅ Administrador creado</h2>
         <div className="rounded-lg bg-black/40 border border-white/10 p-4 mb-3 font-mono text-lg">
           <p>
             Usuario: <span className="font-bold text-brand-light">{username}</span>
@@ -140,7 +154,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           </p>
         </div>
         <p className="text-sm text-white/50 mb-3">
-          Anotá estos datos y pasáselos al empleado. La contraseña no se vuelve
+          Anotá estos datos y pasáselos a la persona. La contraseña no se vuelve
           a mostrar (si se olvida, se le asigna una nueva desde Editar).
         </p>
         <Button onClick={onDone}>Listo</Button>
@@ -150,7 +164,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
 
   return (
     <Card>
-      <h2 className="font-semibold mb-3">Nuevo usuario</h2>
+      <h2 className="font-semibold mb-3">Nuevo administrador</h2>
       <form action={formAction} className="grid gap-3 sm:grid-cols-2">
         <div>
           <Label>Usuario</Label>

@@ -1,4 +1,4 @@
-import { requireSuperAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { db, ledgerEntries } from "@/db";
 import { asc } from "drizzle-orm";
 import { PageTitle, Card, PageHelp } from "@/components/ui";
@@ -6,7 +6,7 @@ import { formatCents } from "@/lib/money";
 import { LedgerTable, LedgerForm } from "./ledger";
 
 export default async function ContabilidadPage() {
-  await requireSuperAdmin();
+  await requireAdmin();
 
   // Libro completo en orden cronológico, con saldo acumulado por operación
   const entries = db

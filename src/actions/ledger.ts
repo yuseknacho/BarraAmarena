@@ -2,7 +2,7 @@
 
 import { db, ledgerEntries } from "@/db";
 import { eq } from "drizzle-orm";
-import { requireSuperAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { pesosToCents } from "@/lib/money";
 import { revalidatePath } from "next/cache";
 
@@ -12,7 +12,7 @@ export async function createLedgerEntry(
   _prev: ActionResult | undefined,
   formData: FormData
 ): Promise<ActionResult> {
-  const user = await requireSuperAdmin();
+  const user = await requireAdmin();
 
   const date = String(formData.get("date") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
@@ -42,7 +42,7 @@ export async function createLedgerEntry(
 }
 
 export async function deleteLedgerEntry(id: number): Promise<ActionResult> {
-  await requireSuperAdmin();
+  await requireAdmin();
   const entry = db
     .select()
     .from(ledgerEntries)

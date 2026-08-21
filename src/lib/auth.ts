@@ -5,12 +5,13 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 
-// Todos los usuarios del sistema son administradores (Super Admin).
+// Roles: "superadmin" administra usuarios y todo lo demás;
+// "admin" puede cargar y editar toda la información pero no gestionar usuarios.
 export interface SessionData {
   userId?: number;
   username?: string;
   fullName?: string;
-  role?: "superadmin" | "cajero" | "barman";
+  role?: "superadmin" | "admin" | "cajero" | "barman";
 }
 
 // El secreto se genera una vez y se guarda en data/ para que el sistema
@@ -56,12 +57,17 @@ export async function requireUser(): Promise<Required<SessionData>> {
   return user;
 }
 
-// Todo lo administrativo es exclusivo del Super Admin.
+// Super Admin o Administrador: pueden cargar información en todo el sistema.
 export async function requireAdmin(): Promise<Required<SessionData>> {
   const user = await requireUser();
-  if (user.role !== "superadmin") redirect("/login");
+  if (user.role !== "superadmin" && user.role !== "admin") redirect("/login");
   return user;
 }
 
-export const requireSuperAdmin = requireAdmin;
+// Solo el Super Admin: gestión de usuarios.
+export async function requireSuperAdmin(): Promise<Required<SessionData>> {
+  const user = await requireUser();
+  if (user.role !== "superadmin") redirect("/estadisticas");
+  return user;
+}
 

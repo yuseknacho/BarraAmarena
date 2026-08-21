@@ -25,7 +25,9 @@ export default async function AppLayout({
             <Logo heightClass="h-8" />
           </Link>
           <nav className="flex items-center gap-1 overflow-x-auto flex-1">
-            {links.map((l) => (
+            {links
+              .filter((l) => l.href !== "/admin" || user.role === "superadmin")
+              .map((l) => (
               <NavLink key={l.href} href={l.href}>
                 {l.label}
               </NavLink>
