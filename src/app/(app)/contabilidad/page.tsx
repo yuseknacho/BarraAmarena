@@ -1,9 +1,9 @@
 import { requireAdmin } from "@/lib/auth";
 import { db, ledgerEntries } from "@/db";
 import { asc } from "drizzle-orm";
-import { PageTitle, Card, PageHelp } from "@/components/ui";
-import { formatCents } from "@/lib/money";
+import { PageTitle, PageHelp } from "@/components/ui";
 import { LedgerTable, LedgerForm } from "./ledger";
+import { LedgerTotals } from "./totals";
 
 export default async function ContabilidadPage() {
   await requireAdmin();
@@ -24,13 +24,6 @@ export default async function ContabilidadPage() {
     // Se muestran los más recientes arriba (el saldo ya quedó calculado en orden cronológico)
     .reverse();
 
-  const ingresos = entries
-    .filter((e) => e.type === "ingreso")
-    .reduce((a, e) => a + e.amountCents, 0);
-  const egresos = entries
-    .filter((e) => e.type === "egreso")
-    .reduce((a, e) => a + e.amountCents, 0);
-
   const categories = [...new Set(entries.map((e) => e.category))].sort();
 
   return (
@@ -43,30 +36,13 @@ export default async function ContabilidadPage() {
 
         {/* Mitad derecha: resumen y carga de movimientos */}
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            <Card>
-              <p className="text-xs text-white/50 uppercase">Ingresos</p>
-              <p className="text-lg font-bold text-brand-light">
-                {formatCents(ingresos)}
-              </p>
-            </Card>
-            <Card>
-              <p className="text-xs text-white/50 uppercase">Egresos</p>
-              <p className="text-lg font-bold text-red-400">
-                {formatCents(egresos)}
-              </p>
-            </Card>
-            <Card>
-              <p className="text-xs text-white/50 uppercase">Saldo</p>
-              <p
-                className={`text-lg font-bold ${
-                  ingresos - egresos >= 0 ? "text-brand-light" : "text-red-400"
-                }`}
-              >
-                {formatCents(ingresos - egresos)}
-              </p>
-            </Card>
-          </div>
+          <LedgerTotals
+            entries={entries.map((e) => ({
+              date: e.date,
+              type: e.type,
+              amountCents: e.amountCents,
+            }))}
+          />
 
           <LedgerForm existingCategories={categories} />
         </div>

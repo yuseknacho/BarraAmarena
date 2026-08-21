@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { db, users } from "@/db";
+import { eq } from "drizzle-orm";
 
 // Roles: "superadmin" administra usuarios y todo lo demás;
 // "admin" puede cargar y editar toda la información pero no gestionar usuarios.
@@ -45,15 +47,32 @@ export async function getSession() {
   return getIronSession<SessionData>(await cookies(), sessionOptions);
 }
 
+// Además de la cookie, se verifica en la base que el usuario siga existiendo
+// y activo: si se lo eliminó o desactivó, la sesión deja de valer al instante.
+// El rol y el nombre se toman siempre de la base (por si se editaron).
 export async function getUser(): Promise<Required<SessionData> | null> {
   const session = await getSession();
   if (!session.userId) return null;
-  return session as Required<SessionData>;
+  const u = db
+    .select({
+      id: users.id,
+      username: users.username,
+      fullName: users.fullName,
+      role: users.role,
+      active: users.active,
+      deletedAt: users.deletedAt,
+    })
+    .from(users)
+    .where(eq(users.id, session.userId))
+    .get();
+  if (!u || !u.active || u.deletedAt) return null;
+  return { userId: u.id, username: u.username, fullName: u.fullName, role: u.role };
 }
 
 export async function requireUser(): Promise<Required<SessionData>> {
   const user = await getUser();
-  if (!user) redirect("/login");
+  // /login?salir=1 borra la cookie (el proxy no deja ver /login con cookie)
+  if (!user) redirect("/login?salir=1");
   return user;
 }
 

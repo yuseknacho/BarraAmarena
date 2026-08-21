@@ -10,6 +10,13 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
   if (hasSession && pathname === "/login") {
+    // Sesión de un usuario eliminado/desactivado: se borra la cookie y se
+    // muestra el login.
+    if (request.nextUrl.searchParams.get("salir")) {
+      const res = NextResponse.redirect(new URL("/login", request.url));
+      res.cookies.delete("barra_session");
+      return res;
+    }
     return NextResponse.redirect(new URL("/estadisticas", request.url));
   }
   return NextResponse.next();
