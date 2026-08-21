@@ -9,12 +9,18 @@ type Entry = {
   type: "ingreso" | "egreso";
   amountCents: number;
   category: string;
+  name?: string;
 };
 
 const MESES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
+
+// Retiros de los socios: categoría "Retiro" (o el concepto clásico de la planilla)
+const isRetiro = (e: Entry) =>
+  e.type === "egreso" &&
+  (/^retiro$/i.test(e.category.trim()) || /retiro.*nahuel.*nelsi.*miguel/i.test(e.name ?? ""));
 
 const selectCls =
   "bg-neutral-900 border border-white/10 p-2 rounded text-white focus:border-brand outline-none";
@@ -50,52 +56,43 @@ export function StatsView({ entries }: { entries: Entry[] }) {
     [entries, year, month]
   );
 
-  // Saldo previo al período (para que la línea de saldo sea el saldo real)
-  const saldoPrevio = useMemo(() => {
-    const first = filtered[0]?.date;
-    if (!first) return 0;
-    return entries
-      .filter((e) => e.date < first)
-      .reduce((a, e) => a + (e.type === "ingreso" ? e.amountCents : -e.amountCents), 0);
-  }, [entries, filtered]);
-
   // Puntos del gráfico: por día si hay mes elegido, por mes si no
   const points = useMemo<StatPoint[]>(() => {
-    const byKey = new Map<string, { ingresos: number; egresos: number }>();
+    const byKey = new Map<string, { ingresos: number; gastos: number; retiros: number }>();
     for (const e of filtered) {
       const key = month ? e.date : e.date.slice(0, 7);
-      const acc = byKey.get(key) ?? { ingresos: 0, egresos: 0 };
+      const acc = byKey.get(key) ?? { ingresos: 0, gastos: 0, retiros: 0 };
       if (e.type === "ingreso") acc.ingresos += e.amountCents;
-      else acc.egresos += e.amountCents;
+      else if (isRetiro(e)) acc.retiros += e.amountCents;
+      else acc.gastos += e.amountCents;
       byKey.set(key, acc);
     }
-    let saldo = saldoPrevio;
     return [...byKey.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, v]) => {
-        saldo += v.ingresos - v.egresos;
-        return {
-          label: month ? fmtDay(key) : fmtMonth(key),
-          ingresosCents: v.ingresos,
-          egresosCents: v.egresos,
-          saldoCents: saldo,
-        };
-      });
-  }, [filtered, month, saldoPrevio]);
+      .map(([key, v]) => ({
+        label: month ? fmtDay(key) : fmtMonth(key),
+        ingresosCents: v.ingresos,
+        gastosCents: v.gastos,
+        retirosCents: v.retiros,
+      }));
+  }, [filtered, month]);
 
   const totalIngresos = filtered
     .filter((e) => e.type === "ingreso")
     .reduce((a, e) => a + e.amountCents, 0);
-  const totalEgresos = filtered
-    .filter((e) => e.type === "egreso")
+  const totalRetiros = filtered.filter(isRetiro).reduce((a, e) => a + e.amountCents, 0);
+  const totalGastos = filtered
+    .filter((e) => e.type === "egreso" && !isRetiro(e))
     .reduce((a, e) => a + e.amountCents, 0);
+  const totalEgresos = totalGastos + totalRetiros;
   const resultado = totalIngresos - totalEgresos;
 
   // Egresos por categoría del período (de mayor a menor)
   const porCategoria = useMemo(() => {
     const map = new Map<string, number>();
     for (const e of filtered)
-      if (e.type === "egreso") map.set(e.category, (map.get(e.category) ?? 0) + e.amountCents);
+      if (e.type === "egreso" && !isRetiro(e))
+        map.set(e.category, (map.get(e.category) ?? 0) + e.amountCents);
     return [...map.entries()].sort((a, b) => b[1] - a[1]);
   }, [filtered]);
 
@@ -127,21 +124,20 @@ export function StatsView({ entries }: { entries: Entry[] }) {
           <p className="text-white/60 text-sm mt-1">🟢 Ingresos</p>
         </div>
         <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
-          <p className="text-2xl md:text-3xl font-bold text-red-400">{formatCents(totalEgresos)}</p>
-          <p className="text-white/60 text-sm mt-1">🔴 Egresos (gastos)</p>
+          <p className="text-2xl md:text-3xl font-bold text-yellow-400">{formatCents(totalGastos)}</p>
+          <p className="text-white/60 text-sm mt-1">🟡 Gastos</p>
+        </div>
+        <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
+          <p className="text-2xl md:text-3xl font-bold text-red-400">{formatCents(totalRetiros)}</p>
+          <p className="text-white/60 text-sm mt-1">🔴 Retiros Nahuel-Nelsi-Miguel</p>
         </div>
         <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
           <p
-            className="text-2xl md:text-3xl font-bold"
-            style={{ color: resultado >= 0 ? "#3b82f6" : "#ef4444" }}
+            className={`text-2xl md:text-3xl font-bold ${resultado >= 0 ? "text-white" : "text-red-400"}`}
           >
             {formatCents(resultado)}
           </p>
-          <p className="text-white/60 text-sm mt-1">🔵 Resultado del período</p>
-        </div>
-        <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
-          <p className="text-2xl md:text-3xl font-bold text-white">{filtered.length}</p>
-          <p className="text-white/60 text-sm mt-1">Movimientos</p>
+          <p className="text-white/60 text-sm mt-1">Resultado del período · {filtered.length} mov.</p>
         </div>
       </div>
 
@@ -153,12 +149,12 @@ export function StatsView({ entries }: { entries: Entry[] }) {
             Ingresos
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="inline-block w-4 h-1 rounded" style={{ background: "#ef4444" }} />
-            Egresos
+            <span className="inline-block w-4 h-1 rounded" style={{ background: "#eab308" }} />
+            Gastos
           </span>
           <span className="inline-flex items-center gap-2">
-            <span className="inline-block w-4 h-1 rounded" style={{ background: "#3b82f6" }} />
-            Saldo acumulado
+            <span className="inline-block w-4 h-1 rounded" style={{ background: "#ef4444" }} />
+            Retiros Nahuel-Nelsi-Miguel
           </span>
           <span className="ml-auto text-xs text-white/40">
             {month ? "Evolución día por día" : "Evolución mes a mes"}
@@ -173,7 +169,7 @@ export function StatsView({ entries }: { entries: Entry[] }) {
           <h3 className="font-semibold mb-3">En qué se fue la plata</h3>
           <div className="space-y-2">
             {porCategoria.map(([cat, cents]) => {
-              const pct = totalEgresos ? Math.round((cents / totalEgresos) * 100) : 0;
+              const pct = totalGastos ? Math.round((cents / totalGastos) * 100) : 0;
               return (
                 <div key={cat}>
                   <div className="flex justify-between text-sm mb-1">
@@ -183,7 +179,7 @@ export function StatsView({ entries }: { entries: Entry[] }) {
                     </span>
                   </div>
                   <div className="h-2 rounded bg-white/10 overflow-hidden">
-                    <div className="h-full bg-red-500/70" style={{ width: `${pct}%` }} />
+                    <div className="h-full bg-yellow-500/70" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
               );

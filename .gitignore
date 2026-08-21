@@ -46,3 +46,5 @@ data/
 # catálogos de datos del negocio
 productos.xls
 *.xlsx
+*.xlsm
+*.xls

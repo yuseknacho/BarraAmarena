@@ -14,6 +14,7 @@ export default async function EstadisticasPage() {
       type: ledgerEntries.type,
       amountCents: ledgerEntries.amountCents,
       category: ledgerEntries.category,
+      name: ledgerEntries.name,
     })
     .from(ledgerEntries)
     .orderBy(asc(ledgerEntries.date), asc(ledgerEntries.id))
@@ -25,7 +26,7 @@ export default async function EstadisticasPage() {
       <StatsView entries={entries} />
       <PageHelp>
         La evolución de la plata del negocio según lo cargado en Contabilidad
-        Barra: cuánto entró, cuánto salió y cómo fue variando el saldo. Filtrá
+        Barra: cuánto entró (verde), cuánto se gastó (amarillo) y cuánto retiraron Nahuel, Nelsi y Miguel (rojo). Para que un retiro cuente en rojo, cargalo con la categoría "Retiro". Filtrá
         por año para ver mes a mes, o elegí un mes para verlo día por día.
       </PageHelp>
     </div>
