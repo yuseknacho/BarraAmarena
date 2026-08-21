@@ -12,9 +12,9 @@ const cajeroLinks = [
 const barmanLinks = [{ href: "/canje", label: "Entregas" }];
 
 const superadminLinks = [
+  { href: "/contabilidad", label: "Contabilidad Barra" },
   { href: "/reportes", label: "Reportes" },
   { href: "/admin", label: "Administración" },
-  { href: "/contabilidad", label: "Contabilidad Barra" },
 ];
 
 export default async function AppLayout({
