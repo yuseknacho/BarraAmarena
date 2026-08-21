@@ -84,8 +84,6 @@ export function StatsView({ entries }: { entries: Entry[] }) {
   const totalGastos = filtered
     .filter((e) => e.type === "egreso" && !isRetiro(e))
     .reduce((a, e) => a + e.amountCents, 0);
-  const totalEgresos = totalGastos + totalRetiros;
-  const resultado = totalIngresos - totalEgresos;
 
   // Egresos por categoría del período (de mayor a menor)
   const porCategoria = useMemo(() => {
@@ -118,7 +116,7 @@ export function StatsView({ entries }: { entries: Entry[] }) {
       </div>
 
       {/* Resumen del período */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
           <p className="text-2xl md:text-3xl font-bold text-brand">{formatCents(totalIngresos)}</p>
           <p className="text-white/60 text-sm mt-1">🟢 Ingresos</p>
@@ -130,14 +128,6 @@ export function StatsView({ entries }: { entries: Entry[] }) {
         <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
           <p className="text-2xl md:text-3xl font-bold text-red-400">{formatCents(totalRetiros)}</p>
           <p className="text-white/60 text-sm mt-1">🔴 Retiros Nahuel-Nelsi-Miguel</p>
-        </div>
-        <div className="bg-white/5 border border-white/10 p-5 rounded-xl">
-          <p
-            className={`text-2xl md:text-3xl font-bold ${resultado >= 0 ? "text-white" : "text-red-400"}`}
-          >
-            {formatCents(resultado)}
-          </p>
-          <p className="text-white/60 text-sm mt-1">Resultado del período · {filtered.length} mov.</p>
         </div>
       </div>
 
