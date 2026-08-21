@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth";
 import { db, users } from "@/db";
 import { isNull } from "drizzle-orm";
 import { PageTitle, PageHelp } from "@/components/ui";
-import { UserList } from "./usuarios/user-list";
+import { UserList } from "./user-list";
 
 // Administración: gestión de usuarios del sistema (crear, editar, eliminar).
 export default async function AdminPage() {
@@ -22,7 +22,6 @@ export default async function AdminPage() {
           id: u.id,
           username: u.username,
           fullName: u.fullName,
-          role: u.role,
           active: u.active,
         }))}
       />

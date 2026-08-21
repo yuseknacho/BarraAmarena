@@ -4,14 +4,7 @@ import { NavLink } from "@/components/nav-link";
 import { Logo } from "@/components/logo";
 import Link from "next/link";
 
-const cajeroLinks = [
-  { href: "/pos", label: "Vender" },
-  { href: "/caja", label: "Caja" },
-];
-
-const barmanLinks = [{ href: "/canje", label: "Entregas" }];
-
-const superadminLinks = [
+const links = [
   { href: "/contabilidad", label: "Contabilidad Barra" },
   { href: "/reportes", label: "Reportes" },
   { href: "/admin", label: "Administración" },
@@ -23,18 +16,12 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
-  const links =
-    user.role === "superadmin"
-      ? superadminLinks
-      : user.role === "barman"
-        ? barmanLinks
-        : cajeroLinks;
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
       <header className="bg-neutral-950 border-b border-white/10">
         <div className="flex items-center gap-4 px-4 h-14">
-          <Link href="/pos" className="shrink-0">
+          <Link href="/reportes" className="shrink-0">
             <Logo heightClass="h-8" />
           </Link>
           <nav className="flex items-center gap-1 overflow-x-auto flex-1">

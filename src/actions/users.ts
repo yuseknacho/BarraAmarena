@@ -20,8 +20,7 @@ import { z } from "zod";
 const userSchema = z.object({
   username: z.string().min(1, "Usuario requerido").regex(/^[a-zA-Z0-9._-]+$/, "Solo letras, números y . _ -"),
   fullName: z.string().min(1, "Nombre requerido"),
-  role: z.enum(["superadmin", "cajero", "barman"]),
-});
+  });
 
 export type ActionResult = { error?: string; ok?: boolean };
 
@@ -33,7 +32,6 @@ export async function createUser(
   const parsed = userSchema.safeParse({
     username: formData.get("username"),
     fullName: formData.get("fullName"),
-    role: formData.get("role"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const password = String(formData.get("password") ?? "");
@@ -50,11 +48,11 @@ export async function createUser(
     .values({
       username: parsed.data.username,
       fullName: parsed.data.fullName,
-      role: parsed.data.role,
+      role: "superadmin",
       passwordHash: bcrypt.hashSync(password, 10),
     })
     .run();
-  revalidatePath("/admin/usuarios");
+  revalidatePath("/admin");
   return { ok: true };
 }
 
@@ -68,28 +66,23 @@ export async function updateUser(
   if (!user) return { error: "Usuario no encontrado." };
 
   const fullName = String(formData.get("fullName") ?? "").trim();
-  const role = String(formData.get("role") ?? user.role) as
-    | "superadmin"
-    | "cajero"
-    | "barman";
   const password = String(formData.get("password") ?? "");
   const active = formData.get("active") === "on";
 
   if (!fullName) return { error: "Nombre requerido." };
-  if (id === admin.userId && (role !== admin.role || !active)) {
-    return { error: "No podés desactivarte ni cambiarte el rol a vos mismo." };
+  if (id === admin.userId && !active) {
+    return { error: "No podés desactivarte a vos mismo." };
   }
 
   db.update(users)
     .set({
       fullName,
-      role,
       active,
       ...(password ? { passwordHash: bcrypt.hashSync(password, 10) } : {}),
     })
     .where(eq(users.id, id))
     .run();
-  revalidatePath("/admin/usuarios");
+  revalidatePath("/admin");
   return { ok: true };
 }
 
@@ -158,14 +151,14 @@ export async function deleteUser(id: number): Promise<DeleteUserResult> {
       })
       .where(eq(users.id, id))
       .run();
-    revalidatePath("/admin/usuarios");
+    revalidatePath("/admin");
     return {
       ok: true,
-      info: `"${user.fullName}" se eliminó. Como tenía actividad registrada, su nombre se conserva en el historial de ventas y cajas.`,
+      info: `"${user.fullName}" se eliminó. Como tenía actividad registrada, su nombre se conserva en el historial.`,
     };
   }
 
   db.delete(users).where(eq(users.id, id)).run();
-  revalidatePath("/admin/usuarios");
+  revalidatePath("/admin");
   return { ok: true };
 }

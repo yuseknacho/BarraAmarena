@@ -10,7 +10,7 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
   if (hasSession && pathname === "/login") {
-    return NextResponse.redirect(new URL("/pos", request.url));
+    return NextResponse.redirect(new URL("/reportes", request.url));
   }
   return NextResponse.next();
 }

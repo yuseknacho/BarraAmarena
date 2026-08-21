@@ -11,7 +11,6 @@ import {
 } from "@/lib/reports";
 import { PageTitle, Card, Th, Td, Button, PageHelp } from "@/components/ui";
 import { formatCents } from "@/lib/money";
-import Link from "next/link";
 
 const methodLabels: Record<string, string> = {
   efectivo: "Efectivo",
@@ -45,12 +44,6 @@ export default async function ReportesPage({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <PageTitle>Reportes</PageTitle>
         <div className="flex gap-3 text-sm items-center">
-          <Link
-            href={`/reportes/ventas?from=${from}&to=${to}`}
-            className="text-brand hover:underline"
-          >
-            Ver ventas una por una →
-          </Link>
           <a
             href={`/api/export/ventas?from=${from}&to=${to}`}
             className="text-brand hover:underline"

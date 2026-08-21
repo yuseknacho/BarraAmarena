@@ -5,8 +5,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 
-// Roles: Super Admin (control total), cajero (las cuentas de cada caja)
-// y barman (solo escanea el QR del ticket para entregar pedidos).
+// Todos los usuarios del sistema son administradores (Super Admin).
 export interface SessionData {
   userId?: number;
   username?: string;
@@ -60,15 +59,9 @@ export async function requireUser(): Promise<Required<SessionData>> {
 // Todo lo administrativo es exclusivo del Super Admin.
 export async function requireAdmin(): Promise<Required<SessionData>> {
   const user = await requireUser();
-  if (user.role !== "superadmin") redirect("/pos");
+  if (user.role !== "superadmin") redirect("/login");
   return user;
 }
 
 export const requireSuperAdmin = requireAdmin;
 
-// Vender y manejar caja: cajeros y Super Admin (el barman no vende).
-export async function requireSeller(): Promise<Required<SessionData>> {
-  const user = await requireUser();
-  if (user.role === "barman") redirect("/canje");
-  return user;
-}

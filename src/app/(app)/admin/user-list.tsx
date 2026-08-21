@@ -3,14 +3,13 @@
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createUser, updateUser, deleteUser } from "@/actions/users";
-import { Button, Input, Label, Select, Card, Th, Td, Badge } from "@/components/ui";
+import { Button, Input, Label, Card, Th, Td, Badge } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
 interface UserRow {
   id: number;
   username: string;
   fullName: string;
-  role: "superadmin" | "cajero" | "barman";
   active: boolean;
 }
 
@@ -69,7 +68,6 @@ export function UserList({ users }: { users: UserRow[] }) {
             <tr>
               <Th>Usuario</Th>
               <Th>Nombre</Th>
-              <Th>Rol</Th>
               <Th>Estado</Th>
               <Th></Th>
             </tr>
@@ -79,11 +77,6 @@ export function UserList({ users }: { users: UserRow[] }) {
               <tr key={u.id}>
                 <Td className="font-medium">{u.username}</Td>
                 <Td>{u.fullName}</Td>
-                <Td>
-                  <Badge color={u.role === "superadmin" ? "yellow" : u.role === "barman" ? "blue" : "gray"}>
-                    {u.role === "superadmin" ? "Super Admin" : u.role === "barman" ? "barman" : "caja"}
-                  </Badge>
-                </Td>
                 <Td>
                   <Badge color={u.active ? "green" : "red"}>
                     {u.active ? "activo" : "inactivo"}
@@ -189,14 +182,6 @@ function CreateForm({ onDone }: { onDone: () => void }) {
             </Button>
           </div>
         </div>
-        <div>
-          <Label>Rol</Label>
-          <Select name="role" defaultValue="cajero">
-            <option value="cajero">Caja (vendedor)</option>
-            <option value="barman">Barman (entrega pedidos)</option>
-            <option value="superadmin">Super Admin</option>
-          </Select>
-        </div>
         {state?.error && (
           <p className="text-sm text-red-400 sm:col-span-2">{state.error}</p>
         )}
@@ -224,14 +209,6 @@ function EditForm({ user, onDone }: { user: UserRow; onDone: () => void }) {
         <div>
           <Label>Nombre completo</Label>
           <Input name="fullName" defaultValue={user.fullName} required />
-        </div>
-        <div>
-          <Label>Rol</Label>
-          <Select name="role" defaultValue={user.role}>
-            <option value="cajero">Caja (vendedor)</option>
-            <option value="barman">Barman (entrega pedidos)</option>
-            <option value="superadmin">Super Admin</option>
-          </Select>
         </div>
         <div>
           <Label>Nueva contraseña (vacío = no cambiar)</Label>
