@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { StatsChart, type StatPoint } from "@/components/stats-chart";
 import { formatCents } from "@/lib/money";
-import dolarBlue from "@/data/dolar-blue.json";
 
 type Entry = {
   date: string; // YYYY-MM-DD
@@ -35,7 +34,15 @@ const fmtMonth = (ym: string) => {
   return `${MESES[Number(m) - 1].slice(0, 3)} ${y}`;
 };
 
-export function StatsView({ entries }: { entries: Entry[] }) {
+export function StatsView({
+  entries,
+  dolarMeses,
+  dolarActualizado,
+}: {
+  entries: Entry[];
+  dolarMeses: Record<string, number>;
+  dolarActualizado: string;
+}) {
   const currentYear = String(new Date().getFullYear());
   const years = useMemo(() => {
     const set = new Set(entries.map((e) => e.date.slice(0, 4)));
@@ -76,9 +83,9 @@ export function StatsView({ entries }: { entries: Entry[] }) {
         gastosCents: v.gastos,
         retirosCents: v.retiros,
         // Dólar blue promedio del mes (solo en la vista mes a mes)
-        dolar: month ? null : ((dolarBlue.meses as Record<string, number>)[key] ?? null),
+        dolar: month ? null : (dolarMeses[key] ?? null),
       }));
-  }, [filtered, month]);
+  }, [filtered, month, dolarMeses]);
 
   const totalIngresos = filtered
     .filter((e) => e.type === "ingreso")
@@ -152,7 +159,7 @@ export function StatsView({ entries }: { entries: Entry[] }) {
           {!month && (
             <span className="inline-flex items-center gap-2">
               <span className="inline-block w-4 h-1 rounded border-t-2 border-dashed" style={{ borderColor: "#3b82f6", background: "transparent" }} />
-              Dólar blue (promedio mensual, eje derecho)
+              Dólar blue (promedio mensual, eje derecho · actualizado {dolarActualizado})
             </span>
           )}
           <span className="ml-auto text-xs text-white/40">
