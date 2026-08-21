@@ -34,7 +34,7 @@ console.log("\n========================================");
 console.log("  Barra POS");
 console.log(`  En esta computadora:  http://localhost:${PORT}`);
 for (const ip of ips) {
-  console.log(`  Desde otras cajas:    http://${ip}:${PORT}`);
+  console.log(`  Desde la red local:   http://${ip}:${PORT}`);
 }
 console.log("========================================\n");
 

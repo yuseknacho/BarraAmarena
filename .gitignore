@@ -48,3 +48,5 @@ productos.xls
 *.xlsx
 *.xlsm
 *.xls
+
+data/servidor.log
