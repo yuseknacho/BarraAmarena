@@ -21,6 +21,10 @@ export const users = sqliteTable("users", {
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   // Borrado lógico: sale de la lista pero el historial conserva su nombre
   deletedAt: text("deleted_at"),
+  // Ingreso con Google: email de la cuenta, id de Google y foto de perfil
+  email: text("email"),
+  googleSub: text("google_sub"),
+  avatarUrl: text("avatar_url"),
   createdAt: text("created_at").notNull().default(now),
 });
 

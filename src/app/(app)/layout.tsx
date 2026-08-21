@@ -1,4 +1,6 @@
 import { requireUser } from "@/lib/auth";
+import { db, users } from "@/db";
+import { eq } from "drizzle-orm";
 import { logoutAction } from "@/actions/auth";
 import { NavLink } from "@/components/nav-link";
 import { Logo } from "@/components/logo";
@@ -16,6 +18,7 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
+  const avatar = db.select({ a: users.avatarUrl }).from(users).where(eq(users.id, user.userId)).get()?.a;
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
@@ -32,6 +35,10 @@ export default async function AppLayout({
             ))}
           </nav>
           <div className="flex items-center gap-3 whitespace-nowrap">
+            {avatar && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatar} alt="" className="h-7 w-7 rounded-full" referrerPolicy="no-referrer" />
+            )}
             <span className="text-sm text-white/60">{user.fullName}</span>
             <form action={logoutAction}>
               <button className="text-sm text-white/40 hover:text-white cursor-pointer">

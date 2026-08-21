@@ -13,6 +13,7 @@ import {
 } from "@/db";
 import { eq, and, ne, isNull, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -20,7 +21,23 @@ import { z } from "zod";
 const userSchema = z.object({
   username: z.string().min(1, "Usuario requerido").regex(/^[a-zA-Z0-9._-]+$/, "Solo letras, números y . _ -"),
   fullName: z.string().min(1, "Nombre requerido"),
-  });
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Email inválido")
+    .optional()
+    .or(z.literal("")),
+});
+
+function emailEnUso(email: string, exceptId?: number): boolean {
+  const row = db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.email, email), isNull(users.deletedAt)))
+    .get();
+  return !!row && row.id !== exceptId;
+}
 
 export type ActionResult = { error?: string; ok?: boolean };
 
@@ -32,10 +49,17 @@ export async function createUser(
   const parsed = userSchema.safeParse({
     username: formData.get("username"),
     fullName: formData.get("fullName"),
+    email: formData.get("email") ?? "",
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const email = parsed.data.email || null;
   const password = String(formData.get("password") ?? "");
-  if (password.length < 4) return { error: "La contraseña debe tener al menos 4 caracteres." };
+  // Con email de Google la contraseña es opcional (puede entrar con Google)
+  if (!email && password.length < 4)
+    return { error: "La contraseña debe tener al menos 4 caracteres (o cargá un email de Google)." };
+  if (password && password.length < 4)
+    return { error: "La contraseña debe tener al menos 4 caracteres." };
+  if (email && emailEnUso(email)) return { error: "Ya hay un usuario con ese email." };
 
   const exists = db
     .select({ id: users.id })
@@ -48,8 +72,9 @@ export async function createUser(
     .values({
       username: parsed.data.username,
       fullName: parsed.data.fullName,
+      email,
       role: "superadmin",
-      passwordHash: bcrypt.hashSync(password, 10),
+      passwordHash: bcrypt.hashSync(password || crypto.randomBytes(24).toString("hex"), 10),
     })
     .run();
   revalidatePath("/admin");
@@ -68,8 +93,12 @@ export async function updateUser(
   const fullName = String(formData.get("fullName") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const active = formData.get("active") === "on";
+  const emailRaw = String(formData.get("email") ?? "").trim().toLowerCase();
+  const email = emailRaw || null;
 
   if (!fullName) return { error: "Nombre requerido." };
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Email inválido." };
+  if (email && emailEnUso(email, id)) return { error: "Ya hay otro usuario con ese email." };
   if (id === admin.userId && !active) {
     return { error: "No podés desactivarte a vos mismo." };
   }
@@ -78,6 +107,9 @@ export async function updateUser(
     .set({
       fullName,
       active,
+      email,
+      // si cambia el email, la vinculación de Google se rehace al entrar
+      ...(email !== user.email ? { googleSub: null } : {}),
       ...(password ? { passwordHash: bcrypt.hashSync(password, 10) } : {}),
     })
     .where(eq(users.id, id))
