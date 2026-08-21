@@ -12,6 +12,7 @@ if (existing.length > 0) {
 db.insert(users)
   .values({
     username: "superadmin",
+    email: "yuseknacho@gmail.com",
     passwordHash: bcrypt.hashSync("superadmin", 10),
     fullName: "Super Admin",
     role: "superadmin",

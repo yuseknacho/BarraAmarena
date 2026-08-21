@@ -13,7 +13,6 @@ import {
 } from "@/db";
 import { eq, and, ne, isNull, or, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import { requireAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -54,11 +53,7 @@ export async function createUser(
   if (!parsed.success) return { error: parsed.error.issues[0].message };
   const email = parsed.data.email || null;
   const password = String(formData.get("password") ?? "");
-  // Con email de Google la contraseña es opcional (puede entrar con Google)
-  if (!email && password.length < 4)
-    return { error: "La contraseña debe tener al menos 4 caracteres (o cargá un email de Google)." };
-  if (password && password.length < 4)
-    return { error: "La contraseña debe tener al menos 4 caracteres." };
+  if (password.length < 4) return { error: "La contraseña debe tener al menos 4 caracteres." };
   if (email && emailEnUso(email)) return { error: "Ya hay un usuario con ese email." };
 
   const exists = db
@@ -74,7 +69,7 @@ export async function createUser(
       fullName: parsed.data.fullName,
       email,
       role: "superadmin",
-      passwordHash: bcrypt.hashSync(password || crypto.randomBytes(24).toString("hex"), 10),
+      passwordHash: bcrypt.hashSync(password, 10),
     })
     .run();
   revalidatePath("/admin");
@@ -108,8 +103,6 @@ export async function updateUser(
       fullName,
       active,
       email,
-      // si cambia el email, la vinculación de Google se rehace al entrar
-      ...(email !== user.email ? { googleSub: null } : {}),
       ...(password ? { passwordHash: bcrypt.hashSync(password, 10) } : {}),
     })
     .where(eq(users.id, id))

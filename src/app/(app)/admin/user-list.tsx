@@ -12,7 +12,6 @@ interface UserRow {
   fullName: string;
   active: boolean;
   email: string | null;
-  avatarUrl: string | null;
 }
 
 export function UserList({ users }: { users: UserRow[] }) {
@@ -70,7 +69,7 @@ export function UserList({ users }: { users: UserRow[] }) {
             <tr>
               <Th>Usuario</Th>
               <Th>Nombre</Th>
-              <Th>Email (Google)</Th>
+              <Th>Email</Th>
               <Th>Estado</Th>
               <Th></Th>
             </tr>
@@ -79,15 +78,7 @@ export function UserList({ users }: { users: UserRow[] }) {
             {users.map((u) => (
               <tr key={u.id}>
                 <Td className="font-medium">{u.username}</Td>
-                <Td>
-                  <span className="inline-flex items-center gap-2">
-                    {u.avatarUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={u.avatarUrl} alt="" className="h-6 w-6 rounded-full" referrerPolicy="no-referrer" />
-                    )}
-                    {u.fullName}
-                  </span>
-                </Td>
+                <Td>{u.fullName}</Td>
                 <Td className="text-white/60">{u.email ?? "—"}</Td>
                 <Td>
                   <Badge color={u.active ? "green" : "red"}>
@@ -145,9 +136,7 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           </p>
           <p>
             Contraseña:{" "}
-            <span className="font-bold text-brand-light">
-              {password || "(sin contraseña: entra con Google)"}
-            </span>
+            <span className="font-bold text-brand-light">{password}</span>
           </p>
         </div>
         <p className="text-sm text-white/50 mb-3">
@@ -178,17 +167,18 @@ function CreateForm({ onDone }: { onDone: () => void }) {
           <Input name="fullName" required />
         </div>
         <div>
-          <Label>Email de Google (opcional, para entrar con Google)</Label>
+          <Label>Email (opcional)</Label>
           <Input name="email" type="email" placeholder="nombre@gmail.com" />
         </div>
         <div>
-          <Label>Contraseña (opcional si cargás email)</Label>
+          <Label>Contraseña</Label>
           <div className="flex gap-2">
             <Input
               name="password"
               type={showPass ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
             <Button
               type="button"
@@ -229,7 +219,7 @@ function EditForm({ user, onDone }: { user: UserRow; onDone: () => void }) {
           <Input name="fullName" defaultValue={user.fullName} required />
         </div>
         <div>
-          <Label>Email de Google</Label>
+          <Label>Email</Label>
           <Input name="email" type="email" defaultValue={user.email ?? ""} placeholder="nombre@gmail.com" />
         </div>
         <div>
