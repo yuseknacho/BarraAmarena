@@ -4,9 +4,44 @@ import Link from "next/link";
 
 const sections = [
   {
+    href: "/panel",
+    title: "Panel de control",
+    desc: "Recaudación en vivo y control por caja.",
+  },
+  {
+    href: "/pos",
+    title: "Vender",
+    desc: "Pantalla de venta con el catálogo y el pedido.",
+  },
+  {
+    href: "/caja",
+    title: "Caja",
+    desc: "Apertura, movimientos y cierre con arqueo.",
+  },
+  {
+    href: "/canje",
+    title: "Entregas",
+    desc: "Canje de pedidos escaneando el QR del ticket.",
+  },
+  {
+    href: "/productos",
+    title: "Productos",
+    desc: "Catálogo, precios, fotos, categorías y combos.",
+  },
+  {
+    href: "/inventario",
+    title: "Inventario",
+    desc: "Stock, alertas de mínimo y ajustes.",
+  },
+  {
+    href: "/compras",
+    title: "Compras",
+    desc: "Compras a proveedores que suben el stock.",
+  },
+  {
     href: "/admin/usuarios",
     title: "Usuarios",
-    desc: "Crear cajeros y administradores, cambiar contraseñas.",
+    desc: "Crear cajeros, barman y administradores; contraseñas.",
   },
   {
     href: "/admin/terminales",

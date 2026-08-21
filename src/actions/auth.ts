@@ -34,7 +34,7 @@ export async function loginAction(
   await session.save();
   redirect(
     user.role === "superadmin"
-      ? "/panel"
+      ? "/reportes"
       : user.role === "barman"
         ? "/canje"
         : "/pos"
