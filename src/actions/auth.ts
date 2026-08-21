@@ -32,7 +32,7 @@ export async function loginAction(
   session.fullName = user.fullName;
   session.role = user.role;
   await session.save();
-  redirect("/reportes");
+  redirect("/estadisticas");
 }
 
 export async function logoutAction() {

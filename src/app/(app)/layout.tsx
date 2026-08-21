@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const links = [
   { href: "/contabilidad", label: "Contabilidad Barra" },
-  { href: "/reportes", label: "Reportes" },
+  { href: "/estadisticas", label: "Estadísticas" },
   { href: "/admin", label: "Administración" },
 ];
 
@@ -21,7 +21,7 @@ export default async function AppLayout({
     <div className="min-h-screen flex flex-col bg-black text-white">
       <header className="bg-neutral-950 border-b border-white/10">
         <div className="flex items-center gap-4 px-4 h-14">
-          <Link href="/reportes" className="shrink-0">
+          <Link href="/estadisticas" className="shrink-0">
             <Logo heightClass="h-8" />
           </Link>
           <nav className="flex items-center gap-1 overflow-x-auto flex-1">

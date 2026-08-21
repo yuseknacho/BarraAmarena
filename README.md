@@ -4,7 +4,7 @@ Aplicación web en red local para la administración del negocio:
 
 - **Contabilidad Barra**: libro de ingresos/egresos con saldo corrido
   (fecha, categoría, nombre de movimiento, egreso, ingreso, saldo).
-- **Reportes**: números del negocio por período, exportables a CSV.
+- **Estadísticas**: evolución de ingresos, egresos y saldo (mes a mes o día por día), y gastos por categoría.
 - **Administración**: usuarios del sistema (crear, editar, eliminar).
   Al crear un usuario se muestra la contraseña configurada.
 
