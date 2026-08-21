@@ -16,10 +16,13 @@ export default async function ContabilidadPage() {
     .all();
 
   let saldo = 0;
-  const rows = entries.map((e) => {
-    saldo += e.type === "ingreso" ? e.amountCents : -e.amountCents;
-    return { ...e, saldoCents: saldo };
-  });
+  const rows = entries
+    .map((e) => {
+      saldo += e.type === "ingreso" ? e.amountCents : -e.amountCents;
+      return { ...e, saldoCents: saldo };
+    })
+    // Se muestran los más recientes arriba (el saldo ya quedó calculado en orden cronológico)
+    .reverse();
 
   const ingresos = entries
     .filter((e) => e.type === "ingreso")

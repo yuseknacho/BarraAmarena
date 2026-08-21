@@ -43,8 +43,9 @@ export function LedgerTable({ rows }: { rows: LedgerRow[] }) {
 
   return (
     <Card className="p-0 overflow-hidden flex flex-col max-h-[70vh]">
-      <div className="px-4 pt-4 pb-2 font-semibold border-b border-white/10">
-        Libro de movimientos
+      <div className="px-4 pt-4 pb-2 font-semibold border-b border-white/10 flex items-baseline justify-between gap-2">
+        <span>Libro de movimientos</span>
+        <span className="text-xs font-normal text-white/40">más recientes arriba</span>
       </div>
       <div className="overflow-auto flex-1">
         <table className="w-full text-sm">
