@@ -7,11 +7,13 @@ export type StatPoint = {
   ingresosCents: number;
   gastosCents: number; // egresos comunes
   retirosCents: number; // retiros Nahuel-Nelsi-Miguel
+  dolar?: number | null; // dólar blue promedio del mes (eje derecho)
 };
 
 const GREEN = "#4fd41f";
 const RED = "#ef4444";
 const YELLOW = "#eab308";
+const BLUE = "#3b82f6";
 
 // Redondea hacia arriba a un número "lindo" (1/2/5 × 10^k) para el eje Y
 function niceCeil(v: number): number {
@@ -29,7 +31,8 @@ const fmtAxis = (pesos: number) =>
       ? `${(pesos / 1000).toLocaleString("es-AR", { maximumFractionDigits: 0 })}k`
       : pesos.toLocaleString("es-AR");
 
-// Gráfico de líneas: ingresos (verde), gastos (amarillo) y retiros (rojo).
+// Gráfico de líneas: ingresos (verde), gastos (amarillo), retiros (rojo)
+// y, en el eje derecho, el dólar blue promedio del mes (azul punteado).
 export function StatsChart({ data }: { data: StatPoint[] }) {
   if (data.length === 0) {
     return (
@@ -41,7 +44,8 @@ export function StatsChart({ data }: { data: StatPoint[] }) {
 
   const W = 820;
   const H = 380;
-  const m = { top: 20, right: 18, bottom: 74, left: 64 };
+  const hasDolar = data.some((d) => typeof d.dolar === "number");
+  const m = { top: 20, right: hasDolar ? 58 : 18, bottom: 74, left: 64 };
   const plotW = W - m.left - m.right;
   const plotH = H - m.top - m.bottom;
 
@@ -60,6 +64,22 @@ export function StatsChart({ data }: { data: StatPoint[] }) {
 
   const line = (getter: (d: StatPoint) => number) =>
     data.map((d, i) => `${x(i)},${y(getter(d) / 100)}`).join(" ");
+
+  // Eje derecho: dólar blue (pesos por dólar), escala propia
+  const dolarVals = data.map((d) => d.dolar).filter((v): v is number => typeof v === "number");
+  const dMax = hasDolar ? niceCeil(Math.max(...dolarVals) * 1.05) : 1;
+  const dMin = hasDolar ? Math.floor((Math.min(...dolarVals) * 0.9) / 100) * 100 : 0;
+  const yD = (v: number) => m.top + plotH * (1 - (v - dMin) / (dMax - dMin));
+  const dolarLine = data
+    .map((d, i) => (typeof d.dolar === "number" ? `${x(i)},${yD(d.dolar)}` : null))
+    .filter(Boolean)
+    .join(" ");
+  const dolarGrid = hasDolar
+    ? [0, 1, 2, 3, 4].map((k) => {
+        const val = dMin + ((dMax - dMin) * k) / 4;
+        return { val, yy: yD(val) };
+      })
+    : [];
 
   const grid = [0, 1, 2, 3, 4].map((k) => {
     const val = minY + ((maxY - minY) * k) / 4;
@@ -93,6 +113,16 @@ export function StatsChart({ data }: { data: StatPoint[] }) {
           </g>
         ))}
 
+        {/* Eje derecho: dólar blue */}
+        {dolarGrid.map((g, i) => (
+          <text key={"d" + i} x={W - m.right + 8} y={g.yy + 4} textAnchor="start" fontSize={11} fill="#3b82f6cc">
+            ${Math.round(g.val).toLocaleString("es-AR")}
+          </text>
+        ))}
+        {hasDolar && (
+          <polyline fill="none" stroke={BLUE} strokeWidth={2.5} strokeDasharray="6 3" points={dolarLine} />
+        )}
+
         {/* Líneas */}
         <polyline fill="none" stroke={GREEN} strokeWidth={2.5} points={line((d) => d.ingresosCents)} />
         <polyline fill="none" stroke={YELLOW} strokeWidth={2.5} points={line((d) => d.gastosCents)} />
@@ -100,7 +130,9 @@ export function StatsChart({ data }: { data: StatPoint[] }) {
 
         {/* Puntos + tooltip nativo + etiquetas del eje X */}
         {data.map((d, i) => {
-          const tip = `${d.label} · Ingresos: ${formatCents(d.ingresosCents)} · Gastos: ${formatCents(d.gastosCents)} · Retiros: ${formatCents(d.retirosCents)}`;
+          const tip =
+            `${d.label} · Ingresos: ${formatCents(d.ingresosCents)} · Gastos: ${formatCents(d.gastosCents)} · Retiros: ${formatCents(d.retirosCents)}` +
+            (typeof d.dolar === "number" ? ` · Dólar blue: $${d.dolar.toLocaleString("es-AR")}` : "");
           return (
             <g key={d.label + i}>
               <circle cx={x(i)} cy={y(d.ingresosCents / 100)} r={3.5} fill={GREEN}>
@@ -112,6 +144,11 @@ export function StatsChart({ data }: { data: StatPoint[] }) {
               <circle cx={x(i)} cy={y(d.retirosCents / 100)} r={3.5} fill={RED}>
                 <title>{tip}</title>
               </circle>
+              {typeof d.dolar === "number" && (
+                <circle cx={x(i)} cy={yD(d.dolar)} r={3.5} fill={BLUE}>
+                  <title>{tip}</title>
+                </circle>
+              )}
               {i % step === 0 && (
                 <text
                   x={x(i)}

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { StatsChart, type StatPoint } from "@/components/stats-chart";
 import { formatCents } from "@/lib/money";
+import dolarBlue from "@/data/dolar-blue.json";
 
 type Entry = {
   date: string; // YYYY-MM-DD
@@ -74,6 +75,8 @@ export function StatsView({ entries }: { entries: Entry[] }) {
         ingresosCents: v.ingresos,
         gastosCents: v.gastos,
         retirosCents: v.retiros,
+        // Dólar blue promedio del mes (solo en la vista mes a mes)
+        dolar: month ? null : ((dolarBlue.meses as Record<string, number>)[key] ?? null),
       }));
   }, [filtered, month]);
 
@@ -146,6 +149,12 @@ export function StatsView({ entries }: { entries: Entry[] }) {
             <span className="inline-block w-4 h-1 rounded" style={{ background: "#ef4444" }} />
             Retiros Nahuel-Nelsi-Miguel
           </span>
+          {!month && (
+            <span className="inline-flex items-center gap-2">
+              <span className="inline-block w-4 h-1 rounded border-t-2 border-dashed" style={{ borderColor: "#3b82f6", background: "transparent" }} />
+              Dólar blue (promedio mensual, eje derecho)
+            </span>
+          )}
           <span className="ml-auto text-xs text-white/40">
             {month ? "Evolución día por día" : "Evolución mes a mes"}
           </span>
@@ -154,7 +163,7 @@ export function StatsView({ entries }: { entries: Entry[] }) {
       </div>
 
       {/* Gastos por categoría */}
-      {porCategoria.length > 0 && (
+      {porCategoria.length > 1 && (
         <div className="bg-white/5 border border-white/10 rounded-xl p-4 md:p-6 mt-6">
           <h3 className="font-semibold mb-3">En qué se fue la plata</h3>
           <div className="space-y-2">
